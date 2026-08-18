@@ -1,46 +1,70 @@
-Root:
-	Nb_drones
+// ------------- ROOT MODULE ---------------
 
-	Start_hub | Hub | End_hub
-
-	Connection*
+Map:
+	/^nb_drones:/ nb_drones=UNSIGNED_NUM
+	hubs*=Hub_types
+	connections*=Connection
 ;
-	
 
-Nb_drones:
-	'nb_drones:' /[0-9]\d*/
+
+
+
+// ------------- HUBS ---------------
+
+Hub_types:
+	Start_hub | Norm_hub | End_hub
 ;
 
 
 Start_hub:
-	'start_hub:' Hub_attributes
+	/^start_hub:/ Hub_attributes
 ;
 
 
-Hub: 
-	'hub:' Hub_attributes
+Norm_hub:
+	/^hub:/ Hub_attributes
 ;
+
 
 End_hub:
-	'end_hub:' Hub_attributes
+	/^end_hub:/ Hub_attributes
 ;
 
+
+
+
+// ------------- HUBS SUB DATA ---------------
 
 Hub_attributes:
-	name=ID x=INT y=INT
+	name=NAME x=INT y=INT ('[' meta*=Hub_meta ']')?
+;
+
+Hub_meta:
+	key=/color|zone|max_drones/ '=' value=META_VAL
 ;
 
 
-	
+
+
+// ------------- CONNECTIONS ---------------
 
 Connection:
-	'Connection:' Connection_attributes
+	/^connection:/ node_start=ID'-'node_end=CONNECTION_NAME ('[' meta*=Con_meta ']')?
 ;
 
-Connection_attributes:
-	node_start=ID'-'node_end=ID
+Con_meta:
+	key=/max_link_capacity/ '=' value=META_VAL
 ;
 
-Comment:
-  '#'/.*$/
-;
+
+Comment: '#'/.*$/ ;
+
+
+
+
+// ------------- PRESETS ---------------
+
+UNSIGNED_NUM: /[0-9]\d*/;
+NAME: /[^\s]*/;
+META_VAL: /[^\s\]]*/;
+CONNECTION_NAME: /[^\s]*/;
