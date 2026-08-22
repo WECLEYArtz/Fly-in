@@ -1,40 +1,29 @@
 // ------------- ROOT MODULE ---------------
-
-Map:
-	/^nb_drones:/ nb_drones=UNSIGNED_NUM
-	hubs*=Hub_types
-	connections*=Connection
+Model:
+	/^nb_drones:/ nb_drones=UNSIGNED_NUM 
+	hubs*=Hub_types[/\n/]
+	connections*=Connection[/\n/]
 ;
 
-
-
-
 // ------------- HUBS ---------------
-
 Hub_types:
 	Start_hub | Norm_hub | End_hub
 ;
-
 
 Start_hub:
 	/^start_hub:/ Hub_attributes
 ;
 
-
 Norm_hub:
 	/^hub:/ Hub_attributes
 ;
-
 
 End_hub:
 	/^end_hub:/ Hub_attributes
 ;
 
 
-
-
 // ------------- HUBS SUB DATA ---------------
-
 Hub_attributes:
 	name=NAME x=INT y=INT ('[' meta*=Hub_meta ']')?
 ;
@@ -44,10 +33,7 @@ Hub_meta:
 ;
 
 
-
-
 // ------------- CONNECTIONS ---------------
-
 Connection:
 	/^connection:/ node_start=ID'-'node_end=CONNECTION_NAME ('[' meta*=Con_meta ']')?
 ;
@@ -57,13 +43,10 @@ Con_meta:
 ;
 
 
-Comment: '#'/.*$/ ;
-
-
+Comment: '#'/.*$\n/ ;
 
 
 // ------------- PRESETS ---------------
-
 UNSIGNED_NUM: /[0-9]\d*/;
 NAME: /[^\s]*/;
 META_VAL: /[^\s\]]*/;

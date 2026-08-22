@@ -1,4 +1,5 @@
 from textx import metamodel_from_file
+import webcolors
 from pprint import pprint
 
 try:
