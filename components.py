@@ -1,4 +1,4 @@
-from enum import Enum
+from collections import defaultdict
 from dataclasses import dataclass
 
 #NOTE: read about __future__
@@ -6,38 +6,41 @@ from dataclasses import dataclass
 #NOTE: read about why  "Fields without default values cannot appear after fields with default values [reportGeneralTypeIssues]"
 
 
-@dataclass(slots=True)
+@dataclass
 class Drone:
     id:int
     fly_Hub:str
     fly_path:list[str]
-    # fly_status:DroneStatus
 
 
-class HubTypes(Enum):
-    BLOCKED= float("inf")
-    RESTRICTED= 2
-    NORMAL= 1
-    PRIORITY= 1
+class HubTypes:
+    Data:dict[str,int]=\
+    { 
+     'blocked': -1,
+     'restricted': 2,
+     'normal': 1,
+     'priority': 1
+     }
 
 
-@dataclass
 class Hub:
-    name:str = "Unknown"
+    name:str = "unknown"
     cord:tuple[int,int] = (0,0)
-    type:HubTypes = HubTypes.NORMAL
-    color:str = 'white'
+    type:str = 'normal'
+    color:str | None = None
     max_drone:int = 1
 
 
 
-@dataclass(slots=True)
+@dataclass
 class Connection:
-    name:str
     max_link_capacity:int
     Hubs:set[Hub]
-    travelers:list[Drone]
+    travelers_count:int = 0
 
+
+#NOTE: connections might be potentially unused in the future
+#NOTE: Read about defaultdict
 
 class Graph:
     """A gragh class to store a dictionary with the following asignments:
@@ -47,8 +50,7 @@ class Graph:
     This helps with retrieving neighbors when needed,
     Since every connection also stores the hubs pair it's linking
     """
-    hubs: dict[str, Hub] = {}
-    connections: list[Connection] = []
-    adjacency: dict[str, list[Connection]] = {}
+    hubs: dict[str, Hub] = defaultdict(Hub)
+    adjacency: dict[str, list[Connection]] = defaultdict(list)
     start_hub:str = ""
     end_hub:str = ""
