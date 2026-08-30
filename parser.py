@@ -32,8 +32,6 @@ class Parser:
             name_to_rgb("violet")
             ]
 
-
-
     
     def name_colorizer(self, name: str, color:str) -> str:
         if color == 'rainbow':

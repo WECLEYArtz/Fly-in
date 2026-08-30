@@ -8,13 +8,13 @@ Path : TypeAlias = list[Connection|Hub]
 class Algo:
     @staticmethod
     def dijktra(graph: Graph) -> None:
-        pq:list[tuple[int, int, Hub]] = [(0, 1, graph.start_hub)]
+        pq:list[tuple[int, Hub]] = [(0, graph.start_hub)]
         visited:list[Hub] = []
 
 
     
         while pq:
-            turns, _, current = heappop(pq)
+            turns, current = heappop(pq)
 
             if current.type == HubTypes.BLOCKED:
                 continue
@@ -32,14 +32,13 @@ class Algo:
                     continue
 
                 cost = turns + abs(neighbor.type.value);
-                node_weight = int( not (neighbor.type == HubTypes.PRIORITY))
 
                 if (cost < adjacency.sim_cost_to_root):
                     adjacency.sim_cost_to_root = cost
                     adjacency.sim_previous_hub = current
                     adjacency.sim_previous_con = connection
 
-                heappush(pq, (cost, node_weight, neighbor))
+                heappush(pq, (cost, neighbor))
                 visited.append(current)
 
 

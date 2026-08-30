@@ -35,6 +35,9 @@ class Hub:
     def __str__(self) -> str:
         return self.name_colored
 
+    def __lt__(self, other):
+        self.type.value < other.type.value
+
 
 
 @dataclass
