@@ -28,7 +28,7 @@ class Regex:
 
     color_meta:Pattern[str]=compile(rf"color=(?P<value>{val})")
     zone_meta:Pattern[str]=compile(rf"zone=(?P<value>{val})")
-    mxd_meta:Pattern[str]=compile(rf"zone=(?P<value>{val})")
+    mxd_meta:Pattern[str]=compile(rf"max_drones=(?P<value>{val})")
     mxlc_meta:Pattern[str]=compile(rf"max_link_capacity=(?P<value>{val})")
 
     start_hub:Pattern[str]=compile(rf"\s*start_hub:\s+{hub_data}")

@@ -10,7 +10,8 @@ class ParseError(Exception):
                     "MXLC_INV":"Invalid max_link_capacity value {}",
 
                     "TYP_INV": "Invalid type - got: '{}'\n"+
-                        f"Available types: {[*HubTypes.Data.keys()]}",
+                        "Available types: "+
+                        "( blocked | restricted | normal | priority )",
 
                     "CLR_INV": "Invalid css color - got: '{}'",
 
@@ -23,7 +24,7 @@ class ParseError(Exception):
                         "Expected <key>=<value> pair, Available pair:\n"+
                         "- zone=(normal|blocked|restricted|priority)\n"+
                         "- color=(existing css color)\n"+
-                        "- max_drone=(positive integer)",
+                        "- max_drones=(positive integer)",
 
                     "NBD_FIRST": "File must start with literal 'nb_drone:'"+
                         "- got '{}'",
@@ -40,7 +41,7 @@ class ParseError(Exception):
 
                     "CORD_ERR": "Error while parsing zone cordination - {}",
 
-                    "END_DUP":  "Connection ends must be different "+
+                    "SLF_LOOP":  "Connection ends must be different "+
                         ", got: '{}' self connection",
 
                     "CN_UNDF": "Attempting to connect undefined zone '{}'",
@@ -67,6 +68,6 @@ class ParseError(Exception):
 
     def __init__(self, line:int, code:str,
                  val:str|int|set[str]|None = None) -> None:
-        super().__init__(f"(line {line}) - " +
+        super().__init__(f"[{code}] (line {line}): " +
                          self.error_msg[code].format(val))
 

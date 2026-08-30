@@ -3,10 +3,11 @@ from errors import ParseError
 from components import Graph, Hub, HubTypes, Connection
 from graphregex import Regex
 from re import Match
-import webcolors
+from webcolors import name_to_rgb, IntegerRGB, names as webnames
 
 
 # NOTE:  read about "Pattern[str]" anotation
+
 
 @dataclass
 class Parser:
@@ -15,7 +16,36 @@ class Parser:
         self.graph:Graph = Graph()
         self.line_i:int = 1
         self.connections:list[set[str]] = []
+        self.types : dict[str,HubTypes] = { 
+         'blocked': HubTypes.BLOCKED,
+         'restricted': HubTypes.RESTRICTED,
+         'normal': HubTypes.NORMAL,
+         'priority':  HubTypes.PRIORITY
+                                           }
+        self.rainbow:list[IntegerRGB] = [
+            name_to_rgb("red"),
+            name_to_rgb("orange"),
+            name_to_rgb("yellow"),
+            name_to_rgb("green"),
+            name_to_rgb("blue"),
+            name_to_rgb("indigo"),
+            name_to_rgb("violet")
+            ]
 
+
+
+    
+    def name_colorizer(self, name: str, color:str) -> str:
+        if color == 'rainbow':
+            gay_form:list[str]=[];
+            for i in range(len(name)):
+                r, g, b = self.rainbow[i % len(self.rainbow)]
+                gay_form.append(f"\x1b[38;2;{r};{g};{b}m{name[i]}\x1b[0m")
+            print (gay_form)
+            return ''.join(gay_form)
+        else:
+            r, g, b = name_to_rgb(color)
+            return f"\x1b[38;2;{r};{g};{b}m{name}\x1b[0m"
 
 
     @staticmethod
@@ -40,23 +70,22 @@ class Parser:
 
 
 
-    def metadata_hub(self, metadata_list: list[str]) -> tuple[str, str, int]:
-        zone_type: str = 'normal'
-        color: str = ''
+    def metadata_hub(self, metadata_list: list[str]) -> tuple[HubTypes, str, int]:
+        zone_type: HubTypes = HubTypes.NORMAL
+        color: str = '';
         max_drone: int = 1
 
         for meta in metadata_list:
             if  (m := Regex.zone_meta.match(meta)):
-                if not m.group('value') in HubTypes.Data.keys():
+                if not (zone_type_str:= m.group('value')) in self.types.keys():
                     raise ParseError(self.line_i, "TYP_INV", m.group('value'))
-                zone_type = m.group('value')
+                zone_type = self.types[zone_type_str]
 
             elif (m := Regex.color_meta.match(meta)):
-                try:
-                    color = webcolors.name_to_hex(m.group('value'))
-                except:
-                    raise ParseError(self.line_i,"CLR_INV",
-                                     m.group('value'))
+
+                color = m.group('value')
+                if (not color in webnames()) and (color != 'rainbow'):
+                    raise ParseError(self.line_i,"CLR_INV", color)
                     
             elif (m := Regex.mxd_meta.match(meta)):
                 try:
@@ -66,7 +95,6 @@ class Parser:
             else:
                 raise ParseError(self.line_i, "INC_META_H", meta)
         return (zone_type, color, max_drone)
-
 
 
     #PERF: will this be better off with a regex?
@@ -88,7 +116,7 @@ class Parser:
 
     
 
-    def extract_hub(self, match: Match[str]) -> None:
+    def extract_hub(self, match: Match[str]) -> Hub:
         hub = Hub()
         hub.name = match.group('name')
         if '-' in hub.name:
@@ -101,12 +129,14 @@ class Parser:
         if match.group('metadata'):
             meta_list = match.group('metadata').split()
             hub.type, hub.color, hub.max_drone = self.metadata_hub(meta_list)
+            hub.name_colored = self.name_colorizer(hub.name, hub.color)
 
-        print("[Debug Hub]:",hub.name, hub.cord, hub. color, hub.max_drone, hub.type)
+        # print("[Debug Hub]:",hub.name, hub.cord, hub. color, hub.max_drone, hub.type)
 
         if self.graph.hubs.get(hub.name):
             raise ParseError(self.line_i, "H_DUP", hub.name)
         self.graph.hubs[hub.name] = hub
+        return hub
         
 
 
@@ -116,7 +146,7 @@ class Parser:
         zonepair:set[str]={zone1,zone2}
 
         if (zone1 == zone2):
-            raise ParseError(self.line_i, "END_DUP", zone1)
+            raise ParseError(self.line_i, "SLF_LOOP", zone1)
         if not zone1 in self.graph.hubs.keys():
             raise ParseError(self.line_i, "CN_UNDF", zone2)
         if not zone2 in self.graph.hubs.keys():
@@ -124,18 +154,22 @@ class Parser:
         if zonepair in self.connections:
             raise ParseError(self.line_i, "CN_DUP", zonepair)
 
+        
+        hub1=self.graph.hubs[zone1]
+        hub2=self.graph.hubs[zone2]
 
-        max_link_capacity:int = 1;
+        connection=Connection({hub1:hub2,
+                               hub2:hub1})
+
         if match.group('metadata'):
             meta_list:list[str] = match.group('metadata').split()
-            max_link_capacity = self.metadata_connection(meta_list)
-        new_connection=Connection(max_link_capacity,{
-            self.graph.hubs[zone1],
-            self.graph.hubs[zone2]
-            })
-        self.graph.adjacency[zone1].append(new_connection)
-        self.graph.adjacency[zone2].append(new_connection)
-        self.connections.append(zonepair)
+            connection.max_link_capacity = self.metadata_connection(meta_list)
+
+
+        self.graph.adjacency_list[hub1].connections.append(connection)
+        self.graph.adjacency_list[hub2].connections.append(connection)
+
+        self.connections.append(zonepair) #Only parsing life-time
 
 
 
@@ -159,34 +193,32 @@ class Parser:
 
                 # [[    START_HUB   ]]
                 if (match:= Regex.start_hub.match(line)):
-                    if self.graph.start_hub:
+                    if self.graph.start_hub.name:
                         raise ParseError(self.line_i, "SH_DUP")
-                    Parser.extract_hub(self, match)
-                    self.graph.start_hub = match.group('name')
-                    
+                    self.graph.start_hub = Parser.extract_hub(self, match)
 
-                # [[    END_HUB     ]]
+
+                    # [[    END_HUB     ]]
                 elif (match:= Regex.end_hub.match(line)):
-                    if self.graph.end_hub:
+                    if self.graph.end_hub.name:
                         raise ParseError(self.line_i, "EH_DUP")
-                    Parser.extract_hub(self, match)
-                    self.graph.end_hub = match.group('name')
+                    self.graph.end_hub =  Parser.extract_hub(self, match)
 
 
-                # [[        HUB     ]]
+                    # [[        HUB     ]]
                 elif (match:= Regex.hub.match(line)):
-                    Parser.extract_hub(self, match)
+                    _ = Parser.extract_hub(self, match)
 
 
-                # [[    CONNECTION  ]]
+                    # [[    CONNECTION  ]]
                 elif (match:= Regex.connection.match(line)):
                     Parser.extract_connection(self, match)
                 else:
                     raise ParseError(self.line_i, "INC_FRM")
 
-            if not self.graph.start_hub:
+            if not self.graph.start_hub.name:
                 raise ParseError(self.line_i, "SH_NON")
-            if not self.graph.end_hub:
+            if not self.graph.end_hub.name:
                 raise ParseError(self.line_i, "EH_NON")
 
         return (self.nb_drone, self.graph)
