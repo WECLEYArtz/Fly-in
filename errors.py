@@ -1,5 +1,9 @@
-from components import  HubTypes
 class ArgError(Exception):
+    def __init__(self, message:str) -> None:
+        super().__init__(message)
+
+
+class AlgoError(Exception):
     def __init__(self, message:str) -> None:
         super().__init__(message)
 
@@ -16,6 +20,9 @@ class ParseError(Exception):
                     "CLR_INV": "Invalid css color - got: '{}'",
 
                     "MXD_INV": "Invalid max drone - '{}'",
+
+                    "MXD_BLK":"Unsupported value of {} for max_drones\n"+
+                        "If attempting to block a zone, Please consider using zone=blocked instead",
 
                     "INC_META_C": "Incomplete meta data: '{}'\n"+
                         "Expected max_link_capacity=<value>",

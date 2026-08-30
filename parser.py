@@ -41,7 +41,6 @@ class Parser:
             for i in range(len(name)):
                 r, g, b = self.rainbow[i % len(self.rainbow)]
                 gay_form.append(f"\x1b[38;2;{r};{g};{b}m{name[i]}\x1b[0m")
-            print (gay_form)
             return ''.join(gay_form)
         else:
             r, g, b = name_to_rgb(color)
@@ -92,6 +91,8 @@ class Parser:
                     max_drone = int(m.group('value'))
                 except TypeError as e:
                     raise ParseError(self.line_i, "MXD_INV", e.__str__())
+                if max_drone <= 0:
+                    raise ParseError(self.line_i, "MXD_BLK", max_drone)
             else:
                 raise ParseError(self.line_i, "INC_META_H", meta)
         return (zone_type, color, max_drone)
@@ -148,7 +149,7 @@ class Parser:
         if (zone1 == zone2):
             raise ParseError(self.line_i, "SLF_LOOP", zone1)
         if not zone1 in self.graph.hubs.keys():
-            raise ParseError(self.line_i, "CN_UNDF", zone2)
+            raise ParseError(self.line_i, "CN_UNDF", zone1)
         if not zone2 in self.graph.hubs.keys():
             raise ParseError(self.line_i, "CN_UNDF", zone2)
         if zonepair in self.connections:

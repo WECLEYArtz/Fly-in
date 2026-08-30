@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
-from webcolors import IntegerRGB
 from enum import Enum
 
 
@@ -52,8 +51,8 @@ class Adjacency:
     connections:list[Connection] = field(default_factory=list[Connection])
 
     sim_cost_to_root:int|float = float('inf')
-    sim_previous_hub:Hub = field(default_factory=Hub)
-    sim_previous_con:Connection = field(default_factory=Connection)
+    sim_previous_hub:Hub | None = None
+    sim_previous_con:Connection | None = None
 
     
 
