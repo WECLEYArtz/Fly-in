@@ -24,6 +24,9 @@ class ParseError(Exception):
                     "MXD_BLK":"Unsupported value of {} for max_drones\n"+
                         "If attempting to block a zone, Please consider using zone=blocked instead",
 
+                    "EH_BLK": "Cannot reach a blocked type end_hub",
+                    "CORD_DUP":"Cordination duplicated '{}'",
+
                     "INC_META_C": "Incomplete meta data: '{}'\n"+
                         "Expected max_link_capacity=<value>",
 
@@ -44,9 +47,11 @@ class ParseError(Exception):
 
                     "NBD_INV_NUM":  "[nb_drones] - Invalid number: {}",
 
-                    "DSH_NAME": "'{}' contains '-'",
+                    "DASH_NAME": "'{}' contains a dash character '-'"+
+                    ", this may conflict with connection initialising",
 
                     "CORD_ERR": "Error while parsing zone cordination - {}",
+
 
                     "SLF_LOOP":  "Connection ends must be different "+
                         ", got: '{}' self connection",
@@ -74,7 +79,7 @@ class ParseError(Exception):
                     }
 
     def __init__(self, line:int, code:str,
-                 val:str|int|set[str]|None = None) -> None:
+                 val: str| int| set[str]| tuple[int,int]| None = None) -> None:
         super().__init__(f"[{code}] (line {line}): " +
                          self.error_msg[code].format(val))
 

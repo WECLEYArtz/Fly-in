@@ -16,6 +16,7 @@ class Parser:
         self.graph:Graph = Graph()
         self.line_i:int = 1
         self.connections:list[set[str]] = []
+        self.cordinations:list[set[int]] = []
         self.types : dict[str,HubTypes] = { 
          'blocked': HubTypes.BLOCKED,
          'restricted': HubTypes.RESTRICTED,
@@ -67,19 +68,18 @@ class Parser:
 
 
 
-    def metadata_hub(self, metadata_list: list[str]) -> tuple[HubTypes, str, int]:
+    def metadata_hub(self, metadatas: list[str]) -> tuple[HubTypes, str, int]:
         zone_type: HubTypes = HubTypes.NORMAL
-        color: str = '';
+        color: str = 'white';
         max_drone: int = 1
 
-        for meta in metadata_list:
+        for meta in metadatas:
             if  (m := Regex.zone_meta.match(meta)):
-                if not (zone_type_str:= m.group('value')) in self.types.keys():
+                if not (ztype:= m.group('value').lower()) in self.types.keys():
                     raise ParseError(self.line_i, "TYP_INV", m.group('value'))
-                zone_type = self.types[zone_type_str]
+                zone_type = self.types[ztype]
 
             elif (m := Regex.color_meta.match(meta)):
-
                 color = m.group('value')
                 if (not color in webnames()) and (color != 'rainbow'):
                     raise ParseError(self.line_i,"CLR_INV", color)
@@ -87,16 +87,16 @@ class Parser:
             elif (m := Regex.mxd_meta.match(meta)):
                 try:
                     max_drone = int(m.group('value'))
-                except TypeError as e:
+                except ValueError as e:
                     raise ParseError(self.line_i, "MXD_INV", e.__str__())
                 if max_drone <= 0:
                     raise ParseError(self.line_i, "MXD_BLK", max_drone)
             else:
                 raise ParseError(self.line_i, "INC_META_H", meta)
+
         return (zone_type, color, max_drone)
 
 
-    #PERF: will this be better off with a regex?
     def extract_nb_drones(self, line:str) -> None:
 
         tokkens = line.split()
@@ -117,11 +117,14 @@ class Parser:
 
     def extract_hub(self, match: Match[str]) -> Hub:
         hub = Hub()
-        hub.name = match.group('name')
+        hub.name_colored = hub.name = match.group('name')
         if '-' in hub.name:
-            raise ParseError(self.line_i, "DSH_NAME", hub.name)
+            raise ParseError(self.line_i, "DASH_NAME", hub.name)
         try:
             hub.cord = (int(match.group("x")), int(match.group("y")))
+            if (set(hub.cord)) in self.cordinations:
+                raise ParseError(self.line_i, "CORD_DUP", hub.cord)
+            self.cordinations.append(set(hub.cord))
         except ValueError as e:
             raise ParseError(self.line_i, "CORD_ERR", e.__str__())
 
@@ -129,8 +132,6 @@ class Parser:
             meta_list = match.group('metadata').split()
             hub.type, hub.color, hub.max_drone = self.metadata_hub(meta_list)
             hub.name_colored = self.name_colorizer(hub.name, hub.color)
-
-        # print("[Debug Hub]:",hub.name, hub.cord, hub. color, hub.max_drone, hub.type)
 
         if self.graph.hubs.get(hub.name):
             raise ParseError(self.line_i, "H_DUP", hub.name)
@@ -202,6 +203,8 @@ class Parser:
                     if self.graph.end_hub.name:
                         raise ParseError(self.line_i, "EH_DUP")
                     self.graph.end_hub =  Parser.extract_hub(self, match)
+                    if  self.graph.end_hub.type == HubTypes.BLOCKED:
+                        raise ParseError(self.line_i, "EH_BLK")
 
 
                     # [[        HUB     ]]

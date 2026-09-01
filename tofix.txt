@@ -1,0 +1,1 @@
+must be error when giving m wiaax_link_capacity 0
