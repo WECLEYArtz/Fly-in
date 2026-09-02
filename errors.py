@@ -36,7 +36,7 @@ class ParseError(Exception):
                         "- color=(existing css color)\n"+
                         "- max_drones=(positive integer)",
 
-                    "NBD_FIRST": "File must start with literal 'nb_drone:'"+
+                    "NBD_FIRST": "File must start with literal 'nb_drones:'"+
                         "- got '{}'",
 
                     "NBD_EXTRA":    "Got extra values for nb_drones",
