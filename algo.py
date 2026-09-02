@@ -53,8 +53,8 @@ class Algo:
         current_adj:Adjacency = graph.adjacency_list[current_hub]
 
         if current_adj.sim_previous_hub == None:
-            raise AlgoError("Couldn't reach end_hub, is it connected?")
-
+            raise AlgoError("Couldn't reach end_hub,"+
+                            " is it connected to start_hub?")
         while(current_hub != graph.start_hub):
             if (not current_adj.sim_previous_con) or (not current_adj.sim_previous_hub):
                 raise AlgoError("Empty adjacency during path creation")
@@ -68,4 +68,3 @@ class Algo:
         for e in path:
             if isinstance(e, Hub): print(e, end=' ')
         return path
-
