@@ -1,16 +1,13 @@
-from typing import TypeAlias
-from components import Graph, Hub, Connection, HubTypes, Adjacency
+from components import Graph, Hub, HubTypes, Adjacency, Path
 from errors import AlgoError
 from heapq  import heappush, heappop
 
-Path : TypeAlias = list[Connection|Hub]
 
 class Algo:
     @staticmethod
     def dijktra(graph: Graph) -> None:
         pq:list[tuple[int, Hub]] = [(0, graph.start_hub)]
         visited:list[Hub] = []
-
 
     
         while pq:
@@ -31,12 +28,13 @@ class Algo:
                 if neighbor in visited:
                     continue
 
-                cost = turns + abs(neighbor.type.value);
+                cost = turns + abs(neighbor.type.value) + neighbor.algo_penalty
 
-                if (cost < adjacency.sim_cost_to_root):
-                    adjacency.sim_cost_to_root = cost
-                    adjacency.sim_previous_hub = current
-                    adjacency.sim_previous_con = connection
+
+                if (cost < adjacency.algo_cost_to_root):
+                    adjacency.algo_cost_to_root = cost
+                    adjacency.algo_prev_hub = current
+                    adjacency.algo_prev_con = connection
 
                 heappush(pq, (cost, neighbor))
                 visited.append(current)
@@ -44,27 +42,37 @@ class Algo:
 
     #NOTE: The way this is structured should probably be optimised,
     #       do i need the structure connected this way?
+
     @staticmethod
-    def get_paths(graph: Graph) -> Path:
-        Algo.dijktra(graph)
+    def get_paths(graph: Graph, requested_paths:int) -> list[Path]:
+        paths : list[Path] = []
 
-        current_hub = graph.end_hub
-        path: Path = [current_hub]
-        current_adj:Adjacency = graph.adjacency_list[current_hub]
+        if not graph.mutli_routes_possible:
+            requested_paths = 1
 
-        if current_adj.sim_previous_hub == None:
-            raise AlgoError("Couldn't reach end_hub,"+
-                            " is it connected to start_hub?")
-        while(current_hub != graph.start_hub):
-            if (not current_adj.sim_previous_con) or (not current_adj.sim_previous_hub):
-                raise AlgoError("Empty adjacency during path creation")
-            path.append(current_adj.sim_previous_con)
-            path.append(current_adj.sim_previous_hub)
-            current_hub = current_adj.sim_previous_hub
-            current_adj = graph.adjacency_list[current_adj.sim_previous_hub]
-        path.reverse()
+        while len(paths) < requested_paths:
+            for adj in graph.adjacency_list.values():
+                adj.algo_cost_to_root = float('inf')
 
+            Algo.dijktra(graph)
 
-        for e in path:
-            if isinstance(e, Hub): print(e, end=' ')
-        return path
+            crrnt_hub = graph.end_hub
+            path: Path = [graph.end_hub]
+            crrnt_adj:Adjacency = graph.adjacency_list[graph.end_hub]
+
+            if crrnt_adj.algo_prev_hub == None:
+                raise AlgoError("END_UNRCHED")
+
+            # Extract result path from adjacency_list
+            while (crrnt_hub != graph.start_hub):
+                if (not crrnt_adj.algo_prev_con) or (not crrnt_adj.algo_prev_hub):
+                    raise AlgoError("ADJ_EMPT")
+                path.extend([crrnt_adj.algo_prev_hub])
+                crrnt_hub = crrnt_adj.algo_prev_hub
+                crrnt_hub.algo_penalty = crrnt_hub.algo_penalty + 1 # Penalty
+                crrnt_adj = graph.adjacency_list[crrnt_adj.algo_prev_hub]
+            path.reverse()
+            if path not in paths:
+                paths.append(path)
+
+        return paths

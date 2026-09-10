@@ -1,18 +1,12 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TypeAlias
 
 
 #NOTE: read about __future__
 #NOTE: read about "dataclass" and "slots=True" why and how they increase performance
 #NOTE: read about why  "Fields without default values cannot appear after fields with default values [reportGeneralTypeIssues]"
-
-
-@dataclass
-class Drone:
-    id:int
-    fly_Hub:str
-    fly_path:list[str]
 
 
 
@@ -28,8 +22,8 @@ class Hub:
     name_colored:str = ""
     cord:tuple[int,int] = (0,0)
     type:HubTypes = HubTypes.NORMAL
-    color:str = ''
-    max_drone:int = 1
+    max_capacity:int = 1
+    algo_penalty:int = 0
     sim_users:int = 0
 
     def __str__(self) -> str:
@@ -43,8 +37,16 @@ class Hub:
 @dataclass
 class Connection:
     xpairs:dict[Hub,Hub] = field(default_factory=dict[Hub,Hub])
-    max_link_capacity:int = 1
+    max_capacity:int = 1
     sim_users:int = 0
+
+
+Path : TypeAlias = list[Hub]
+
+@dataclass
+class Drone:
+    id:int
+    fly_path:Path
 
 
 #NOTE: read about field(default_factory=list)
@@ -53,9 +55,9 @@ class Connection:
 class Adjacency:
     connections:list[Connection] = field(default_factory=list[Connection])
 
-    sim_cost_to_root:int|float = float('inf')
-    sim_previous_hub:Hub | None = None
-    sim_previous_con:Connection | None = None
+    algo_cost_to_root:int|float = float('inf')
+    algo_prev_hub:Hub | None = None
+    algo_prev_con:Connection | None = None
 
     
 
@@ -78,3 +80,7 @@ class Graph:
     adjacency_list: dict[Hub, Adjacency] = defaultdict(Adjacency)
     start_hub:Hub = Hub()
     end_hub:Hub = Hub()
+    mutli_routes_possible:bool = False
+    cons_count:int = 0
+
+

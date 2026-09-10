@@ -4,8 +4,13 @@ class ArgError(Exception):
 
 
 class AlgoError(Exception):
-    def __init__(self, message:str) -> None:
-        super().__init__(message)
+    error_msg:dict[str,str]= {
+            "END_UNRCHED": "Couldn't reach end_hub, is it connected to start_hub?"                    ,
+            "ADJ_EMPT": "Empty adjacency during path creation"
+            }
+
+    def __init__(self, code:str) -> None:
+        super().__init__(AlgoError.error_msg[code])
 
 
 class ParseError(Exception):
@@ -14,30 +19,30 @@ class ParseError(Exception):
                     "MXLC_INV":"Invalid max_link_capacity value {}",
 
                     "TYP_INV": "Invalid type - got: '{}'\n"+
-                        "Available types: "+
-                        "( blocked | restricted | normal | priority )",
+                    "Available types: "+
+                    "( blocked | restricted | normal | priority )",
 
                     "CLR_INV": "Invalid css color - got: '{}'",
 
                     "MXD_INV": "Invalid max drone - '{}'",
 
                     "MXD_BLK":"Unsupported value of {} for max_drones\n"+
-                        "If attempting to block a zone, Please consider using zone=blocked instead",
+                    "If attempting to block a zone, Please consider using zone=blocked instead",
 
                     "EH_BLK": "Cannot reach a blocked type end_hub",
                     "CORD_DUP":"Cordination duplicated '{}'",
 
                     "INC_META_C": "Incomplete meta data: '{}'\n"+
-                        "Expected max_link_capacity=<value>",
+                    "Expected max_link_capacity=<value>",
 
                     "INC_META_H": "Incomplete meta data: '{}'\n"+
-                        "Expected <key>=<value> pair, Available pair:\n"+
-                        "- zone=(normal|blocked|restricted|priority)\n"+
-                        "- color=(existing css color)\n"+
-                        "- max_drones=(positive integer)",
+                    "Expected <key>=<value> pair, Available pair:\n"+
+                    "- zone=(normal|blocked|restricted|priority)\n"+
+                    "- color=(existing css color)\n"+
+                    "- max_drones=(positive integer)",
 
                     "NBD_FIRST": "File must start with literal 'nb_drones:'"+
-                        "- got '{}'",
+                    "- got '{}'",
 
                     "NBD_EXTRA":    "Got extra values for nb_drones",
 
@@ -54,7 +59,7 @@ class ParseError(Exception):
 
 
                     "SLF_LOOP":  "Connection ends must be different "+
-                        ", got: '{}' self connection",
+                    ", got: '{}' self connection",
 
                     "CN_UNDF": "Attempting to connect undefined zone '{}'",
 
@@ -62,7 +67,7 @@ class ParseError(Exception):
 
                     "H_DUP":    "Duplicated hub '{}'",
 
-                    "EH_DUP":   "end_hub duplication",
+            "EH_DUP":   "end_hub duplication",
 
                     "CN_DUP":   "Duplicated connection '{}'",
 

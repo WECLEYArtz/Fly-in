@@ -22,7 +22,7 @@ class Parser:
          'restricted': HubTypes.RESTRICTED,
          'normal': HubTypes.NORMAL,
          'priority':  HubTypes.PRIORITY
-                                           }
+        }
         self.rainbow:list[IntegerRGB] = [
             name_to_rgb("red"),
             name_to_rgb("orange"),
@@ -68,7 +68,7 @@ class Parser:
 
 
 
-    def metadata_hub(self, metadatas: list[str]) -> tuple[HubTypes, str, int]:
+    def metadata_hub(self, metadatas: list[str]) -> tuple[HubTypes, int, str]:
         zone_type: HubTypes = HubTypes.NORMAL
         color: str = 'white';
         max_drone: int = 1
@@ -94,7 +94,7 @@ class Parser:
             else:
                 raise ParseError(self.line_i, "INC_META_H", meta)
 
-        return (zone_type, color, max_drone)
+        return (zone_type, max_drone, color)
 
 
     def extract_nb_drones(self, line:str) -> None:
@@ -130,8 +130,8 @@ class Parser:
 
         if match.group('metadata'):
             meta_list = match.group('metadata').split()
-            hub.type, hub.color, hub.max_drone = self.metadata_hub(meta_list)
-            hub.name_colored = self.name_colorizer(hub.name, hub.color)
+            hub.type, hub.max_capacity, color = self.metadata_hub(meta_list)
+            hub.name_colored = self.name_colorizer(hub.name, color)
 
         if self.graph.hubs.get(hub.name):
             raise ParseError(self.line_i, "H_DUP", hub.name)
@@ -163,7 +163,7 @@ class Parser:
 
         if match.group('metadata'):
             meta_list:list[str] = match.group('metadata').split()
-            connection.max_link_capacity = self.metadata_connection(meta_list)
+            connection.max_capacity = self.metadata_connection(meta_list)
 
 
         self.graph.adjacency_list[hub1].connections.append(connection)
@@ -173,7 +173,7 @@ class Parser:
 
 
 
-    def file_to_gragh(self, file_path:str) -> tuple[int, Graph]:
+    def file_to_graph(self, file_path:str) -> tuple[int, Graph]:
         """return: tuple containing number of drone and gragh"""
 
         with open(file_path, 'r') as f:
@@ -198,7 +198,7 @@ class Parser:
                     self.graph.start_hub = Parser.extract_hub(self, match)
 
 
-                    # [[    END_HUB     ]]
+                # [[    END_HUB     ]]
                 elif (match:= Regex.end_hub.match(line)):
                     if self.graph.end_hub.name:
                         raise ParseError(self.line_i, "EH_DUP")
@@ -207,20 +207,36 @@ class Parser:
                         raise ParseError(self.line_i, "EH_BLK")
 
 
-                    # [[        HUB     ]]
+                # [[        HUB     ]]
                 elif (match:= Regex.hub.match(line)):
                     _ = Parser.extract_hub(self, match)
 
 
-                    # [[    CONNECTION  ]]
+                # [[    CONNECTION  ]]
                 elif (match:= Regex.connection.match(line)):
                     Parser.extract_connection(self, match)
+                    self.graph.cons_count = self.graph.cons_count + 1
                 else:
                     raise ParseError(self.line_i, "INC_FRM")
+
 
             if not self.graph.start_hub.name:
                 raise ParseError(self.line_i, "SH_NON")
             if not self.graph.end_hub.name:
                 raise ParseError(self.line_i, "EH_NON")
+
+            # Calculate the posibility of having a single or multiple routes
+            blocked_hubs = [hub for hub in self.graph.hubs.values()
+                                     if hub.type == HubTypes.BLOCKED]
+            blocked_cons = set(self.graph.adjacency_list[hub].connections
+                                   for hub in blocked_hubs)
+
+            available_hubs_count = len(self.graph.hubs) - len(blocked_hubs)
+            available_cons_count = self.graph.cons_count - len(blocked_cons)
+            if available_cons_count >= available_hubs_count:
+                print("Mutltiroutes set to true")
+                self.graph.mutli_routes_possible=True
+            else:
+                print("Mutltiroutes set to false")
 
         return (self.nb_drone, self.graph)
