@@ -16,7 +16,7 @@ class Parser:
         self.graph:Graph = Graph()
         self.line_i:int = 1
         self.connections:list[set[str]] = []
-        self.cordinations:list[set[int]] = []
+        self.cordinations:list[tuple[int,int]] = []
         self.types : dict[str,HubTypes] = { 
          'blocked': HubTypes.BLOCKED,
          'restricted': HubTypes.RESTRICTED,
@@ -122,9 +122,9 @@ class Parser:
             raise ParseError(self.line_i, "DASH_NAME", hub.name)
         try:
             hub.cord = (int(match.group("x")), int(match.group("y")))
-            if (set(hub.cord)) in self.cordinations:
+            if (hub.cord) in self.cordinations:
                 raise ParseError(self.line_i, "CORD_DUP", hub.cord)
-            self.cordinations.append(set(hub.cord))
+            self.cordinations.append(hub.cord)
         except ValueError as e:
             raise ParseError(self.line_i, "CORD_ERR", e.__str__())
 
@@ -158,16 +158,16 @@ class Parser:
         hub1=self.graph.hubs[zone1]
         hub2=self.graph.hubs[zone2]
 
-        connection=Connection({hub1:hub2,
-                               hub2:hub1})
+        connection=Connection({hub1.name:hub2,
+                               hub2.name:hub1})
 
         if match.group('metadata'):
             meta_list:list[str] = match.group('metadata').split()
             connection.max_capacity = self.metadata_connection(meta_list)
 
 
-        self.graph.adjacency_list[hub1].connections.append(connection)
-        self.graph.adjacency_list[hub2].connections.append(connection)
+        self.graph.adjacency_list[hub1.name].connections.append(connection)
+        self.graph.adjacency_list[hub2.name].connections.append(connection)
 
         self.connections.append(zonepair) #Only parsing life-time
 
@@ -205,6 +205,7 @@ class Parser:
                     self.graph.end_hub =  Parser.extract_hub(self, match)
                     if  self.graph.end_hub.type == HubTypes.BLOCKED:
                         raise ParseError(self.line_i, "EH_BLK")
+                    self.graph.end_hub.max_capacity = float('inf')
 
 
                 # [[        HUB     ]]
@@ -228,15 +229,12 @@ class Parser:
             # Calculate the posibility of having a single or multiple routes
             blocked_hubs = [hub for hub in self.graph.hubs.values()
                                      if hub.type == HubTypes.BLOCKED]
-            blocked_cons = set(self.graph.adjacency_list[hub].connections
+            blocked_cons = set(self.graph.adjacency_list[hub.name].connections
                                    for hub in blocked_hubs)
 
             available_hubs_count = len(self.graph.hubs) - len(blocked_hubs)
             available_cons_count = self.graph.cons_count - len(blocked_cons)
             if available_cons_count >= available_hubs_count:
-                print("Mutltiroutes set to true")
                 self.graph.mutli_routes_possible=True
-            else:
-                print("Mutltiroutes set to false")
 
         return (self.nb_drone, self.graph)

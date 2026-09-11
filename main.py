@@ -8,8 +8,8 @@ from argvalidator import ArgValidator
 from simulation import Simulation 
 
 # NOTE: delete when pushing
-def debug_visualise_paths():
-    paths: list[Path] = [Simulation.path_tier1, Simulation.path_tier2]
+def debug_visualise_paths(sim: Simulation):
+    paths: list[Path] = [sim.path_tiers[0], sim.path_tiers[1]]
     for path in paths:
         for e in path:
             print(e, end=' ')
@@ -21,10 +21,14 @@ if __name__ == "__main__":
         file_path:str = ArgValidator.validate(sys.argv)
 
         nb_drones, graph = Parser().file_to_graph(file_path) 
-        Simulation.path_tier1, Simulation.path_tier2 = Algo.get_paths(graph, 2)
-        Simulation.init_drone_paths(nb_drones)
+        sim = Simulation(nb_drones, graph)
+        sim.path_tiers = Algo.get_paths(graph, 2)
+        if len(sim.path_tiers) < 2:
+            sim.path_tiers.append(sim.path_tiers[0])
+        sim.init_drone_paths()
+        sim.run_simulation()
 
-        debug_visualise_paths()
+        # debug_visualise_paths(sim)
 
 
         # simulation to take that path later

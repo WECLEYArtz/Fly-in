@@ -17,14 +17,22 @@ class HubTypes(Enum):
      PRIORITY = -1
 
 
+
+@dataclass
+class Drone:
+    id:int
+    fly_path_id:int
+
+
+@dataclass
 class Hub:
     name:str = ""
     name_colored:str = ""
     cord:tuple[int,int] = (0,0)
     type:HubTypes = HubTypes.NORMAL
-    max_capacity:int = 1
+    max_capacity:int|float = 1
     algo_penalty:int = 0
-    sim_users:int = 0
+    users:list[Drone] = field(default_factory=list[Drone])
 
     def __str__(self) -> str:
         return self.name_colored
@@ -32,21 +40,16 @@ class Hub:
     def __lt__(self, other):
         self.type.value < other.type.value
 
+Path : TypeAlias = list[Hub]
 
 
 @dataclass
 class Connection:
-    xpairs:dict[Hub,Hub] = field(default_factory=dict[Hub,Hub])
-    max_capacity:int = 1
+    xpairs:dict[str,Hub] = field(default_factory=dict[str,Hub])
+    max_capacity:int|float = 1
     sim_users:int = 0
+    algo_penalty:int = 0
 
-
-Path : TypeAlias = list[Hub]
-
-@dataclass
-class Drone:
-    id:int
-    fly_path:Path
 
 
 #NOTE: read about field(default_factory=list)
@@ -77,7 +80,7 @@ class Graph:
     Since every connection also stores the hubs pair it's linking
     """
     hubs: dict[str, Hub] = defaultdict(Hub)
-    adjacency_list: dict[Hub, Adjacency] = defaultdict(Adjacency)
+    adjacency_list: dict[str, Adjacency] = defaultdict(Adjacency)
     start_hub:Hub = Hub()
     end_hub:Hub = Hub()
     mutli_routes_possible:bool = False

@@ -20,15 +20,17 @@ class Algo:
                 break;
 
 
-            for connection in graph.adjacency_list[current].connections:
+            for connection in graph.adjacency_list[current.name].connections:
 
-                neighbor:Hub = connection.xpairs[current]
-                adjacency:Adjacency = graph.adjacency_list[neighbor]
+                neighbor:Hub = connection.xpairs[current.name]
+                adjacency:Adjacency = graph.adjacency_list[neighbor.name]
 
                 if neighbor in visited:
                     continue
 
-                cost = turns + abs(neighbor.type.value) + neighbor.algo_penalty
+                cost = turns + abs(neighbor.type.value) \
+                            + neighbor.algo_penalty \
+                            + connection.algo_penalty
 
 
                 if (cost < adjacency.algo_cost_to_root):
@@ -58,7 +60,7 @@ class Algo:
 
             crrnt_hub = graph.end_hub
             path: Path = [graph.end_hub]
-            crrnt_adj:Adjacency = graph.adjacency_list[graph.end_hub]
+            crrnt_adj:Adjacency = graph.adjacency_list[graph.end_hub.name]
 
             if crrnt_adj.algo_prev_hub == None:
                 raise AlgoError("END_UNRCHED")
@@ -69,9 +71,12 @@ class Algo:
                     raise AlgoError("ADJ_EMPT")
                 path.extend([crrnt_adj.algo_prev_hub])
                 crrnt_hub = crrnt_adj.algo_prev_hub
+                crrnt_con = crrnt_adj.algo_prev_con
+                crrnt_con.algo_penalty = crrnt_con.algo_penalty + 1
                 crrnt_hub.algo_penalty = crrnt_hub.algo_penalty + 1 # Penalty
-                crrnt_adj = graph.adjacency_list[crrnt_adj.algo_prev_hub]
+                crrnt_adj = graph.adjacency_list[crrnt_adj.algo_prev_hub.name]
             path.reverse()
+            
             if path not in paths:
                 paths.append(path)
 
