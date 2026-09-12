@@ -1,5 +1,5 @@
-from components import Graph, Drone, Path, HubTypes
-
+from components import Graph, Drone, Path, HubTypes, Hub, Connection, DEBUG_PATH
+from heapq import heappop, heappush
 
 class Simulation:
     def __init__(self, nb_drones:int, graph: Graph):
@@ -7,67 +7,83 @@ class Simulation:
         self.graph: Graph = graph
         self.path_tiers: list[Path] = []
 
-    def id_gen(self):
-        for i in range(1,self.nb_drones+1):
-            yield i
-
     def init_drone_paths(self):
-        bottleneck_1 = min([e.max_capacity for e in self.path_tiers[0]])
-        bottleneck_2 = min([e.max_capacity for e in self.path_tiers[1]])
-        second_path_turns = len(self.path_tiers[1]) -1
-        bottlenecks = [bottleneck_2, bottleneck_1]
+        bottlenecks:list[int | float] = [
+                min([e.max_capacity for e in self.path_tiers[0]]),
+                min([e.max_capacity for e in self.path_tiers[1]])]
 
-        drone_id_gen = Simulation.id_gen(self)
-        paths_ids = [1,0] # try to use bit shifting later, or something cleaner
+        path_turns:list[int] = [
+                sum([abs(e.type.value) for e in self.path_tiers[0]
+                     if isinstance(e, Hub)]),
+                sum([abs(e.type.value) for e in self.path_tiers[1]
+                     if isinstance(e, Hub)])]
 
-        turns = 0
+        paths_hq:list[tuple[int, int, Path]] = [
+                (path_turns[0], 0, self.path_tiers[0]),
+                (path_turns[1], 1, self.path_tiers[1])]
+
+        start_hub_users = self.graph.start_hub.users
         nb_drones = self.nb_drones
-        drones_start_hub = self.graph.start_hub.users
-
+        drone_id = 0
         while (nb_drones):
-            if turns == 0:
-                turns = second_path_turns -1
-                bottlenecks.reverse()
-                paths_ids.reverse()
+            turns, path_index, path = heappop(paths_hq)
 
-            for _ in range(int(bottlenecks[0])): #[ init every drone for the current turn]
-                drones_start_hub.append(Drone(next(drone_id_gen), paths_ids[0]))
+            for _ in range(int(bottlenecks[path_index])):
+                start_hub_users.append(Drone(drone_id, path_index, 0))
+                drone_id += 1
                 nb_drones -= 1
-                if not turns:
-                    break
-            turns -= 1
+            heappush(paths_hq, (turns+1, path_index, path))
+
 
 
     def run_simulation(self):
-        drones_end_hub = self.graph.end_hub.users
-        line_logs: list[str] = []
-        while(len(drones_end_hub) < self.nb_drones):
-            for path_id, path in enumerate(self.path_tiers):
-                # if (not path_id):
-                #     print("\n[Debug]: << NEW LOOP >>")
-                # print("[Debug]: switching to Path", path_id)
-                for hub_id in range(len(path)-2 , -1, -1):
-                    # print("[Debug]:    switching to", path[hub_id].name_colored, "in path", path_id, f"{len(path[hub_id].users)}/{path[hub_id].max_capacity}")
-                    to_remove:list[Drone] = []
-                    for drone in path[hub_id].users:
-                        if drone.fly_path_id != path_id:
-                            continue
-                        # print("[Debug]:      checking drone", drone.id)
-                        if hub_id and drone in path[hub_id-1].users:
-                            path[hub_id-1].users.remove(drone)
-                            path[hub_id-1].max_capacity -= 1
-                            line_logs.append(f'D{drone.id}-{path[hub_id].name_colored}')
-                        elif len(path[hub_id+1].users) < path[hub_id+1].max_capacity:
-                            path[hub_id+1].users.append(drone)
-                            if path[hub_id+1].type == HubTypes.RESTRICTED:
-                                line_logs.append(f'D{drone.id}-{path[hub_id].name_colored}-{path[hub_id+1].name_colored}')
-                                path[hub_id].max_capacity += 1
-                            else:
-                                line_logs.append(f'D{drone.id}-{path[hub_id+1].name_colored}')
-                                to_remove.append(drone)
 
-                    path[hub_id].users = [drone for drone in path[hub_id].users
-                                                  if not drone in to_remove]
-            if line_logs:
-                print(' '.join(line_logs))
-                line_logs = []
+        logs: list[str] = []
+        paths_len:list[int] = [len(self.path_tiers[0]), len(self.path_tiers[1])]
+        next_con:Connection = Connection()  # hacky way to fix typing
+        next_hub:Hub = Hub()                # hacky way to fix typing
+
+        drones = self.graph.start_hub.users.copy()
+        connections_to_clean:list[Connection] = [
+                e for path in self.path_tiers
+                for e in path if isinstance(e, Connection) ]
+        while(len(self.graph.end_hub.users) < self.nb_drones ):
+            # print()
+            for _drone in drones:
+                # print("[Debug]: >>> testing drone", _drone.id)
+                _path = self.path_tiers[_drone.path_id]
+                # DEBUG_PATH(_path)
+                if (_drone.hub_id == paths_len[_drone.path_id]-1):
+                    continue
+                if (_drone.hub_id % 2):
+                    _drone.hub_id += 1
+                    logs.append(f'D{_drone.id}-'
+                                +f'{_path[_drone.hub_id].name_clr}')
+                    continue
+
+                if (isinstance(e:= _path[_drone.hub_id+1], Connection)):
+                    next_con = e
+                if (isinstance(e:= _path[_drone.hub_id+2], Hub)):
+                    next_hub = e
+
+                if  (len(next_con.users) < next_con.max_capacity) and\
+                    (len(next_hub.users) < next_hub.max_capacity):
+                    next_con.users.append(_drone)
+                    next_hub.users.append(_drone)
+                    _path[_drone.hub_id].users.remove(_drone)
+
+                    if (next_hub.type == HubTypes.RESTRICTED):
+                        _drone.hub_id += 1
+                        logs.append(f'D{_drone.id}-'
+                                    +f'{_path[_drone.hub_id-1].name_clr}-'
+                                    +f'{_path[_drone.hub_id+1].name_clr}')
+                    else:
+                        _drone.hub_id += 2
+                        logs.append(f'D{_drone.id}-'
+                                    +f'{_path[_drone.hub_id].name_clr}')
+            if logs:
+                print(' '.join(logs))
+                logs = []
+
+            for con in connections_to_clean:
+                con.users = []

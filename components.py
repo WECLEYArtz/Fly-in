@@ -21,13 +21,14 @@ class HubTypes(Enum):
 @dataclass
 class Drone:
     id:int
-    fly_path_id:int
+    path_id:int
+    hub_id:int
 
 
 @dataclass
 class Hub:
     name:str = ""
-    name_colored:str = ""
+    name_clr:str = ""
     cord:tuple[int,int] = (0,0)
     type:HubTypes = HubTypes.NORMAL
     max_capacity:int|float = 1
@@ -35,21 +36,23 @@ class Hub:
     users:list[Drone] = field(default_factory=list[Drone])
 
     def __str__(self) -> str:
-        return self.name_colored
+        return self.name_clr
 
     def __lt__(self, other):
         self.type.value < other.type.value
 
-Path : TypeAlias = list[Hub]
 
 
 @dataclass
 class Connection:
     xpairs:dict[str,Hub] = field(default_factory=dict[str,Hub])
+    name:str = ""
+    name_clr:str = ""
     max_capacity:int|float = 1
-    sim_users:int = 0
     algo_penalty:int = 0
+    users:list[Drone] = field(default_factory=list[Drone])
 
+Path : TypeAlias = list[Hub | Connection]
 
 
 #NOTE: read about field(default_factory=list)
@@ -87,3 +90,9 @@ class Graph:
     cons_count:int = 0
 
 
+def DEBUG_PATH(path: Path):
+    print("[Debug]: Path: ")
+    for hub in path:
+        if not  isinstance(hub, Hub):
+            continue
+        print(f"    {hub.name, hub.max_capacity, hub.users}")

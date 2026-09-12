@@ -117,7 +117,7 @@ class Parser:
 
     def extract_hub(self, match: Match[str]) -> Hub:
         hub = Hub()
-        hub.name_colored = hub.name = match.group('name')
+        hub.name_clr = hub.name = match.group('name')
         if '-' in hub.name:
             raise ParseError(self.line_i, "DASH_NAME", hub.name)
         try:
@@ -131,7 +131,7 @@ class Parser:
         if match.group('metadata'):
             meta_list = match.group('metadata').split()
             hub.type, hub.max_capacity, color = self.metadata_hub(meta_list)
-            hub.name_colored = self.name_colorizer(hub.name, color)
+            hub.name_clr = self.name_colorizer(hub.name, color)
 
         if self.graph.hubs.get(hub.name):
             raise ParseError(self.line_i, "H_DUP", hub.name)

@@ -1,4 +1,4 @@
-from components import Graph, Hub, HubTypes, Adjacency, Path
+from components import Graph, Hub, HubTypes, Adjacency, Path, DEBUG_PATH
 from errors import AlgoError
 from heapq  import heappush, heappop
 
@@ -67,17 +67,17 @@ class Algo:
 
             # Extract result path from adjacency_list
             while (crrnt_hub != graph.start_hub):
-                if (not crrnt_adj.algo_prev_con) or (not crrnt_adj.algo_prev_hub):
+                if not (crrnt_adj.algo_prev_con and crrnt_adj.algo_prev_hub):
                     raise AlgoError("ADJ_EMPT")
-                path.extend([crrnt_adj.algo_prev_hub])
-                crrnt_hub = crrnt_adj.algo_prev_hub
                 crrnt_con = crrnt_adj.algo_prev_con
-                crrnt_con.algo_penalty = crrnt_con.algo_penalty + 1
-                crrnt_hub.algo_penalty = crrnt_hub.algo_penalty + 1 # Penalty
-                crrnt_adj = graph.adjacency_list[crrnt_adj.algo_prev_hub.name]
+                crrnt_hub = crrnt_adj.algo_prev_hub
+                crrnt_con.algo_penalty += 1
+                crrnt_hub.algo_penalty += 1
+                path.extend([crrnt_con, crrnt_hub])
+                crrnt_adj = graph.adjacency_list[crrnt_hub.name]
             path.reverse()
             
             if path not in paths:
                 paths.append(path)
-
+                # DEBUG_PATH(path)
         return paths
