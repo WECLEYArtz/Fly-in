@@ -16,6 +16,8 @@ class AlgoError(Exception):
 class ParseError(Exception):
     error_msg:dict[str,str]=\
             {
+                    "MXLC_BLK":"max_link_capacity 0 is unsupported"
+                                +"please clear map from blocked connections",
                     "MXLC_INV":"Invalid max_link_capacity value {}",
 
                     "TYP_INV": "Invalid type - got: '{}'\n"+
