@@ -8,3 +8,6 @@ dependencies = [
     "flake8>=7.3.0",
     "webcolors>=25.10.0",
 ]
+
+[tool.black]
+line-length = 79   
