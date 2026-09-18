@@ -56,7 +56,7 @@ class Parser:
             if not (match := Regex.mxlc_meta.match(meta)):
                 raise ParseError(self.line_i, "INC_META_C", meta)
             try:
-                if value := int(match.group("value")) == 0:
+                if (value := int(match.group("value"))) == 0:
                     raise ParseError(self.line_i, "MXLC_BLK")
             except ValueError as e:
                 raise ParseError(self.line_i, "MXLC_INV", e.__str__())
