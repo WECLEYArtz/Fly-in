@@ -16,9 +16,11 @@ deug:
 clean:
 	rm -rf .mypy_cache __pycache__
 
+fclean: clean
+
 lint: 
 	uv run flake8 .
-	uvv run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	uv run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
 	flake8 .

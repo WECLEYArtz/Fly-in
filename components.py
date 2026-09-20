@@ -40,7 +40,7 @@ class Hub:
         return self.name_clr
 
     def __lt__(self, other):
-        self.type.value < other.type.value
+        return self.type.value < other.type.value
 
 
 @dataclass
