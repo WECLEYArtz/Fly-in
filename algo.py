@@ -1,6 +1,7 @@
 from components import Graph, Hub, HubTypes, Adjacency, Path
 from errors import AlgoError
 from heapq import heappush, heappop
+from pprint import pprint
 
 
 class Algo:
@@ -10,7 +11,11 @@ class Algo:
         visited: list[Hub] = []
 
         while pq:
+            print("======================================================")
+            print("[DEBUG] heapq now")
+            pprint(pq)
             turns, current = heappop(pq)
+            print("[DEBUG] poped:",current.name)
 
             if current.type == HubTypes.BLOCKED:
                 continue
@@ -37,8 +42,10 @@ class Algo:
                     adjacency.algo_cost_to_root = cost
                     adjacency.algo_prev_hub = current
                     adjacency.algo_prev_con = connection
-
+                print("------")
                 heappush(pq, (cost, neighbor))
+                print("[DEBUG] << after pushing ", neighbor.name)
+                pprint(pq)
                 visited.append(current)
 
     # NOTE: The way this is structured should probably be optimised,

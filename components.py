@@ -28,10 +28,10 @@ class Drone:
 
 @dataclass
 class Hub:
+    type: HubTypes = HubTypes.NORMAL
     name: str = ""
     name_clr: str = ""
     cord: tuple[int, int] = (0, 0)
-    type: HubTypes = HubTypes.NORMAL
     max_capacity: int | float = 1
     algo_penalty: int = 0
     users: list[Drone] = field(default_factory=list[Drone])
@@ -40,6 +40,12 @@ class Hub:
         return self.name_clr
 
     def __lt__(self, other):
+        print("comparation result:",
+              f"{self.name} smaller than {other.name}" 
+              if self.type.value < other.type.value
+              else
+              f"{self.name} smaller than {other.name}" 
+              )
         self.type.value < other.type.value
 
 
