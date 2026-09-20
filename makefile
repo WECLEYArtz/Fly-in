@@ -2,6 +2,8 @@
 
 MAP = maps/easy/01_linear_path.txt
 
+all: run
+
 install:
 	$(CAHCE) $(VENV) uv sync
 
