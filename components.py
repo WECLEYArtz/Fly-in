@@ -39,9 +39,6 @@ class Hub:
     def __str__(self) -> str:
         return self.name_clr
 
-    def __lt__(self, other):
-        return self.type.value < other.type.value
-
 
 @dataclass
 class Connection:
@@ -90,7 +87,7 @@ class Graph:
     cons_count: int = 0
 
 
-def DEBUG_PATH(path: Path):
+def DEBUG_PATH(path: Path) -> None:
     print("[Debug]: Path: ")
     for hub in path:
         if not isinstance(hub, Hub):

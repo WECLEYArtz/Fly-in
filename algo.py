@@ -6,11 +6,11 @@ from heapq import heappush, heappop
 class Algo:
     @staticmethod
     def dijktra(graph: Graph) -> None:
-        pq: list[tuple[int, Hub]] = [(0, graph.start_hub)]
+        pq: list[tuple[int, int, str, Hub]] = [(0, 1, "", graph.start_hub)]
         visited: list[Hub] = []
 
         while pq:
-            turns, current = heappop(pq)
+            turns, _, _, current = heappop(pq)
 
             if current.type == HubTypes.BLOCKED:
                 continue
@@ -38,7 +38,11 @@ class Algo:
                     adjacency.algo_prev_hub = current
                     adjacency.algo_prev_con = connection
 
-                heappush(pq, (cost, neighbor))
+                # TODO: make an array of hubs and  use index if all same
+                heappush(
+                    pq,
+                    (cost, neighbor.type.value, neighbor.name, neighbor),
+                )
                 visited.append(current)
 
     # NOTE: The way this is structured should probably be optimised,

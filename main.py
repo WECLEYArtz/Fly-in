@@ -9,7 +9,7 @@ from simulation import Simulation
 
 
 # NOTE: delete when pushing
-def debug_visualise_paths(sim: Simulation):
+def debug_visualise_paths(sim: Simulation) -> None:
     paths: list[Path] = [sim.path_tiers[0], sim.path_tiers[1]]
     for path in paths:
         for e in path:
