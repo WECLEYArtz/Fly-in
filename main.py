@@ -1,6 +1,5 @@
 import sys
 
-from components import Path
 from algo import Algo
 from errors import ParseError, ArgError, AlgoError
 from parser import Parser
@@ -9,12 +8,14 @@ from simulation import Simulation
 
 
 # NOTE: delete when pushing
-def debug_visualise_paths(sim: Simulation) -> None:
-    paths: list[Path] = [sim.path_tiers[0], sim.path_tiers[1]]
-    for path in paths:
-        for e in path:
-            print(e, end=" ")
-        print("\n")
+
+# def debug_visualise_paths(sim: Simulation) -> None:
+#
+#     paths: list[Path] = [sim.path_tiers[0], sim.path_tiers[1]]
+#     for path in paths:
+#         for e in path:
+#             print(e, end=" ")
+#         print("\n")
 
 
 if __name__ == "__main__":
@@ -29,9 +30,6 @@ if __name__ == "__main__":
         sim.init_drone_paths()
         sim.run_simulation()
 
-        # debug_visualise_paths(sim)
-
-        # simulation to take that path later
     except (ArgError, ParseError, AlgoError) as e:
         print(f"[{e.__class__.__name__}]", e)
     except KeyboardInterrupt:

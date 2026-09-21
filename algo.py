@@ -7,7 +7,7 @@ from errors import AlgoError
 class Algo:
     @staticmethod
     def dijktra(graph: Graph) -> None:
-        pq: list[tuple[int, str, str]] = [(0, 1, graph.start_hub.name)]
+        pq: list[tuple[int, int, str]] = [(0, 1, graph.start_hub.name)]
         visited: list[Hub] = []
 
         while pq:
@@ -42,9 +42,6 @@ class Algo:
 
                 heappush(pq, (cost, neighbor.type.value, neighbor.name))
                 visited.append(current)
-
-    # NOTE: The way this is structured should probably be optimised,
-    #       do i need the structure connected this way?
 
     @staticmethod
     def get_paths(graph: Graph, requested_paths: int) -> list[Path]:
