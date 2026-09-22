@@ -65,11 +65,8 @@ class Simulation:
             if isinstance(e, Connection)
         ]
         while len(self.graph.end_hub.users) < self.nb_drones:
-            # print()
             for _drone in drones:
-                # print("[Debug]: >>> testing drone", _drone.id)
                 _path = self.path_tiers[_drone.path_id]
-                # DEBUG_PATH(_path)
                 if _drone.hub_id == paths_len[_drone.path_id] - 1:
                     continue
                 if _drone.hub_id % 2:

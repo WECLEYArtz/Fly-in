@@ -7,17 +7,6 @@ from argvalidator import ArgValidator
 from simulation import Simulation
 
 
-# NOTE: delete when pushing
-
-# def debug_visualise_paths(sim: Simulation) -> None:
-#
-#     paths: list[Path] = [sim.path_tiers[0], sim.path_tiers[1]]
-#     for path in paths:
-#         for e in path:
-#             print(e, end=" ")
-#         print("\n")
-
-
 if __name__ == "__main__":
     try:
         file_path: str = ArgValidator.validate(sys.argv)

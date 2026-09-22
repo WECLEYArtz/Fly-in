@@ -77,5 +77,4 @@ class Algo:
 
             if path not in paths:
                 paths.append(path)
-                # DEBUG_PATH(path)
         return paths

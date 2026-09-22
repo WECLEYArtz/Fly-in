@@ -1,6 +1,3 @@
-.PHONY: all run debug install clean lint
-
-
 MAP = maps/easy/01_linear_path.txt
 
 
@@ -8,15 +5,15 @@ all: run
 
 
 install:
-	$(CAHCE) $(VENV) uv sync
+	uv sync
 
 
 run:
-	$(CAHCE) $(VENV) uv run python3 main.py $(MAP)
+	uv run python3 main.py $(MAP)
 
 
 deug:
-	$(CAHCE) $(VENV) uv run python3 -m pdb main.py $(MAP)
+	uv run python3 -m pdb main.py $(MAP)
 
 
 clean:
@@ -40,3 +37,6 @@ lint:
 lint-strict:
 	uv run flake8 .
 	uv run mypy . --strict
+
+
+.PHONY: all run debug install clean lint

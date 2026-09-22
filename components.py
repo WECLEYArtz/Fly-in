@@ -85,11 +85,3 @@ class Graph:
     end_hub: Hub = Hub()
     mutli_routes_possible: bool = False
     cons_count: int = 0
-
-
-def DEBUG_PATH(path: Path) -> None:
-    print("[Debug]: Path: ")
-    for hub in path:
-        if not isinstance(hub, Hub):
-            continue
-        print(f"    {hub.name, hub.max_capacity, hub.users}")
