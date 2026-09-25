@@ -65,6 +65,7 @@ class Algo:
 
             # Extract result path from adjacency_list
             while crrnt_hub != graph.start_hub:
+
                 if not (crrnt_adj.algo_prev_con and crrnt_adj.algo_prev_hub):
                     raise AlgoError("ADJ_EMPT")
                 crrnt_con = crrnt_adj.algo_prev_con

@@ -1,4 +1,4 @@
-*The very first line must be italicized and read: This project has been created as part of the 42 curriculum by ahmounsi.*
+*This project has been created as part of the 42 curriculum by ahmounsi.*
 
 
 ## Description
@@ -8,4 +8,7 @@
 
 
 ## Resources
+
+
+
 [configure Flake8 to ignore directories via pyproject.toml](https://github.com/microsoft/vscode-flake8/issues/135)

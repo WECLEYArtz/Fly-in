@@ -15,7 +15,7 @@ class AlgoError(Exception):
 
 class ParseError(Exception):
     error_msg: dict[str, str] = {
-        "MXLC_BLK": "max_link_capacity 0 is unsupported"
+        "MXLC_BLK": "max_link_capacity {} is unsupported, "
         + "please clear map from blocked connections",
         "MXLC_INV": "Invalid max_link_capacity value {}",
         "TYP_INV": "Invalid type - got: '{}'\n"
@@ -24,7 +24,7 @@ class ParseError(Exception):
         "CLR_INV": "Invalid css color - got: '{}'",
         "MXD_INV": "Invalid max drone - '{}'",
         "MXD_BLK": "Unsupported value of {} for max_drones\n"
-        + "If attempting to block a zone,"
+        + "If attempting to block a zone, "
         + "Please consider using zone=blocked instead",
         "EH_BLK": "Cannot reach a blocked type end_hub",
         "CORD_DUP": "Cordination duplicated '{}'",

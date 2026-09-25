@@ -1,8 +1,11 @@
 from components import Graph, Drone, Path, HubTypes, Hub, Connection
+from collections import defaultdict
 from heapq import heappop, heappush
 
 
 class Simulation:
+    users: dict[Hub | Connection, list[Drone]] = defaultdict(list[Drone])
+
     def __init__(self, nb_drones: int, graph: Graph):
         self.nb_drones: int = nb_drones
         self.graph: Graph = graph
@@ -36,7 +39,7 @@ class Simulation:
             (path_turns[1], 1, self.path_tiers[1]),
         ]
 
-        start_hub_users = self.graph.start_hub.users
+        start_hub_users = self.users[self.graph.start_hub]
         nb_drones = self.nb_drones
         drone_id = 0
         while nb_drones:
@@ -54,17 +57,17 @@ class Simulation:
             len(self.path_tiers[0]),
             len(self.path_tiers[1]),
         ]
-        next_con: Connection = Connection()  # hacky way to fix typing
+        next_con: Connection = Connection({})  # hacky way to fix typing
         next_hub: Hub = Hub()  # hacky way to fix typing
 
-        drones = self.graph.start_hub.users.copy()
+        drones = self.users[self.graph.start_hub].copy()
         connections_to_clean: list[Connection] = [
             e
             for path in self.path_tiers
             for e in path
             if isinstance(e, Connection)
         ]
-        while len(self.graph.end_hub.users) < self.nb_drones:
+        while len(self.users[self.graph.end_hub]) < self.nb_drones:
             for _drone in drones:
                 _path = self.path_tiers[_drone.path_id]
                 if _drone.hub_id == paths_len[_drone.path_id] - 1:
@@ -81,12 +84,12 @@ class Simulation:
                 if isinstance(e := _path[_drone.hub_id + 2], Hub):
                     next_hub = e
 
-                if (len(next_con.users) < next_con.max_capacity) and (
-                    len(next_hub.users) < next_hub.max_capacity
+                if (len(self.users[next_con]) < next_con.max_capacity) and (
+                    len(self.users[next_hub]) < next_hub.max_capacity
                 ):
-                    next_con.users.append(_drone)
-                    next_hub.users.append(_drone)
-                    _path[_drone.hub_id].users.remove(_drone)
+                    self.users[next_con].append(_drone)
+                    self.users[next_hub].append(_drone)
+                    self.users[_path[_drone.hub_id]].remove(_drone)
 
                     if next_hub.type == HubTypes.RESTRICTED:
                         _drone.hub_id += 1
@@ -106,4 +109,4 @@ class Simulation:
                 logs = []
 
             for con in connections_to_clean:
-                con.users = []
+                self.users[con] = []

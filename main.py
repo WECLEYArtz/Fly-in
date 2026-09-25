@@ -18,8 +18,9 @@ if __name__ == "__main__":
             sim.path_tiers.append(sim.path_tiers[0])
         sim.init_drone_paths()
         sim.run_simulation()
-
     except (ArgError, ParseError, AlgoError) as e:
         print(f"[{e.__class__.__name__}]", e)
+        exit(1)
     except KeyboardInterrupt:
         print("Program Terminated!\n")
+        exit(1)

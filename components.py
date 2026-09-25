@@ -26,7 +26,6 @@ class Drone:
     hub_id: int
 
 
-@dataclass
 class Hub:
     name: str = ""
     name_clr: str = ""
@@ -34,20 +33,18 @@ class Hub:
     type: HubTypes = HubTypes.NORMAL
     max_capacity: int | float = 1
     algo_penalty: int = 0
-    users: list[Drone] = field(default_factory=list[Drone])
 
     def __str__(self) -> str:
         return self.name_clr
 
 
-@dataclass
 class Connection:
-    xpairs: dict[str, Hub] = field(default_factory=dict[str, Hub])
-    name: str = ""
-    name_clr: str = ""
-    max_capacity: int | float = 1
-    algo_penalty: int = 0
-    users: list[Drone] = field(default_factory=list[Drone])
+    def __init__(self, xpairs: dict[str, Hub]):
+        self.xpairs: dict[str, Hub] = xpairs
+        self.name: str = ""
+        self.name_clr: str = ""
+        self.max_capacity: int | float = 1
+        self.algo_penalty: int = 0
 
 
 Path: TypeAlias = list[Hub | Connection]

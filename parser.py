@@ -14,7 +14,9 @@ class Parser:
         self.nb_drone: int
         self.graph: Graph = Graph()
         self.line_i: int = 1
-        self.connections: list[set[str]] = []
+        self.connections: list[set[str]] = []  # turn into set of Connections?
+        self.blocked_connections: list[Connection] = []
+        self.blocked_hubs: list[Hub] = []
         self.cordinations: list[tuple[int, int]] = []
         self.types: dict[str, HubTypes] = {
             "blocked": HubTypes.BLOCKED,
@@ -56,8 +58,8 @@ class Parser:
             if not (match := Regex.mxlc_meta.match(meta)):
                 raise ParseError(self.line_i, "INC_META_C", meta)
             try:
-                if (value := int(match.group("value"))) == 0:
-                    raise ParseError(self.line_i, "MXLC_BLK")
+                if (value := int(match.group("value"))) < 1:
+                    raise ParseError(self.line_i, "MXLC_BLK", value)
             except ValueError as e:
                 raise ParseError(self.line_i, "MXLC_INV", e.__str__())
         return value
@@ -125,6 +127,9 @@ class Parser:
         if match.group("metadata"):
             meta_list = match.group("metadata").split()
             hub.type, hub.max_capacity, color = self.metadata_hub(meta_list)
+            if hub.type == HubTypes.BLOCKED:
+                self.blocked_hubs.append(hub)
+
             hub.name_clr = self.name_colorizer(hub.name, color)
 
         if self.graph.hubs.get(hub.name):
@@ -150,6 +155,8 @@ class Parser:
         hub2 = self.graph.hubs[zone2]
 
         connection = Connection({hub1.name: hub2, hub2.name: hub1})
+        if hub1.type == HubTypes.BLOCKED or hub2.type == HubTypes.BLOCKED:
+            self.blocked_connections.append(connection)
 
         if match.group("metadata"):
             meta_list: list[str] = match.group("metadata").split()
@@ -208,20 +215,13 @@ class Parser:
             if not self.graph.end_hub.name:
                 raise ParseError(self.line_i, "EH_NON")
 
-            # Calculate the posibility of having a single or multiple routes
-            blocked_hubs = [
-                hub
-                for hub in self.graph.hubs.values()
-                if hub.type == HubTypes.BLOCKED
-            ]
-            blocked_cons = set(
-                self.graph.adjacency_list[hub.name].connections
-                for hub in blocked_hubs
-            )
+            blked_hubs = self.blocked_hubs
+            blked_cons = self.blocked_connections
 
-            available_hubs_count = len(self.graph.hubs) - len(blocked_hubs)
-            available_cons_count = self.graph.cons_count - len(blocked_cons)
-            if available_cons_count >= available_hubs_count:
+            ok_hubs_count = len(self.graph.hubs) - len(blked_hubs)
+            ok_cons_count = self.graph.cons_count - len(blked_cons)
+
+            if ok_cons_count >= ok_hubs_count:
                 self.graph.mutli_routes_possible = True
 
         return (self.nb_drone, self.graph)
