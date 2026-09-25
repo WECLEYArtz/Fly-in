@@ -6,7 +6,6 @@ from parser import Parser
 from argvalidator import ArgValidator
 from simulation import Simulation
 
-
 if __name__ == "__main__":
     try:
         file_path: str = ArgValidator.validate(sys.argv)
@@ -19,7 +18,7 @@ if __name__ == "__main__":
         sim.init_drone_paths()
         sim.run_simulation()
     except (ArgError, ParseError, AlgoError) as e:
-        print(f"[{e.__class__.__name__}]", e)
+        print(f"\033[31m[{e.__class__.__name__}]", e)
         exit(1)
     except KeyboardInterrupt:
         print("Program Terminated!\n")

@@ -66,5 +66,8 @@ class ParseError(Exception):
         val: str | int | set[str] | tuple[int, int] | None = None,
     ) -> None:
         super().__init__(
-            f"[{code}] (line {line}):" + self.error_msg[code].format(val)
+            f"[{code}] (line {line}):"
+            + "\033[33m "
+            + self.error_msg[code].format(val)
+            + "\033[0m "
         )
