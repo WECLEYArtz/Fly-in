@@ -1,19 +1,27 @@
 class ArgError(Exception):
+    """Represent an error in the program arguments."""
+
     def __init__(self, message: str) -> None:
+        """Initialize the exception with an error message."""
         super().__init__(message)
 
 
 class AlgoError(Exception):
+    """Represent an error raised by the pathfinding algorithm."""
+
     error_msg: dict[str, str] = {
         "END_UNRCHED": "Couldn't reach end_hub, is it connected to start_hub?",
         "ADJ_EMPT": "Empty adjacency during path creation",
     }
 
     def __init__(self, code: str) -> None:
+        """Initialize the exception from an error code."""
         super().__init__(AlgoError.error_msg[code])
 
 
 class ParseError(Exception):
+    """Represent an error raised while parsing input."""
+
     error_msg: dict[str, str] = {
         "MXLC_BLK": "max_link_capacity {} is unsupported, "
         + "please clear map from blocked connections",
@@ -65,6 +73,13 @@ class ParseError(Exception):
         code: str,
         val: str | int | set[str] | tuple[int, int] | None = None,
     ) -> None:
+        """Initialize a colorized parsing error message.
+
+        Args:
+            line: The input line where the error occurred.
+            code: The parsing error code.
+            val: The value associated with the error, if any.
+        """
         super().__init__(
             f"[{code}] (line {line}):"
             + "\033[33m "

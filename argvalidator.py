@@ -5,8 +5,18 @@ from errors import ArgError
 
 # NOTE: read about os, os.path, os.R_OK
 class ArgValidator:
+    """Contain the argument validation method."""
+
     @staticmethod
     def validate(argv: list[str]) -> str:
+        """Retrieve and validate the file path from the program arguments.
+
+        Args:
+            argv: All program arguments.
+
+        Returns:
+            The validated file path.
+        """
         file = argv[1].strip()
         if len(argv) < 2:
             raise ArgError("No arguments given")

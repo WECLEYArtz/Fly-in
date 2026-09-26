@@ -4,14 +4,37 @@ from heapq import heappop, heappush
 
 
 class Simulation:
+    """Run the drone simulation.
+
+    Attributes:
+        users: The users of each hub or connection during the simulation.
+    """
+
     users: dict[Hub | Connection, list[Drone]] = defaultdict(list[Drone])
 
     def __init__(self, nb_drones: int, graph: Graph):
+        """Initialize the simulation.
+
+        Args:
+            nb_drones: The number of drones.
+            graph: The graph containing the map data.
+
+        Attributes:
+            path_tiers: Paths ordered by length.
+        """
         self.nb_drones: int = nb_drones
         self.graph: Graph = graph
         self.path_tiers: list[Path] = []
 
     def init_drone_paths(self) -> None:
+        """Assign each drone a path for the simulation.
+
+        Calculate the bottleneck and number of turns for each path. The
+        algorithm assigns drones to the first path until it reaches its turn
+        count, then distributes the remaining drones across both paths.
+
+        A heap queue automatically switches between paths.
+        """
         bottlenecks: list[int | float] = [
             min([e.max_capacity for e in self.path_tiers[0]]),
             min([e.max_capacity for e in self.path_tiers[1]]),
@@ -44,10 +67,6 @@ class Simulation:
         drone_id = 0
         while nb_drones:
             turns, path_index, path = heappop(paths_hq)
-            # TODO: Try to count the capacity of the nodes after start
-            # and pass the count of those nodes before switching to next
-            # path in distribution
-
             for _ in range(int(bottlenecks[path_index])):
                 start_hub_users.append(Drone(drone_id, path_index, 0))
                 drone_id += 1
@@ -55,6 +74,13 @@ class Simulation:
             heappush(paths_hq, (turns + 1, path_index, path))
 
     def run_simulation(self) -> None:
+        """Run the simulation using the prepared paths.
+
+        Iterate over each drone and process its next move while recording its
+        action and position for the other drones.
+
+        Each iteration cleans the connections for the next run.
+        """
         logs: list[str] = []
         paths_len: list[int] = [
             len(self.path_tiers[0]),

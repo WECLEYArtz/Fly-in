@@ -10,13 +10,20 @@ from webcolors import name_to_rgb, IntegerRGB, names as webnames
 
 @dataclass
 class Parser:
+    """Parse input data and construct a graph."""
+
     def __init__(self) -> None:
+        """Initialize the parser state.
+
+        The parser state includes the parsed graph, connection data, blocked
+        hubs and connections, zone types, and rainbow colors.
+        """
         self.nb_drone: int
         self.graph: Graph = Graph()
         self.line_i: int = 1
         self.connections: list[set[str]] = []  # turn into set of Connections?
-        self.blocked_connections: list[Connection] = []
-        self.blocked_hubs: list[Hub] = []
+        self.block_connections: list[Connection] = []
+        self.block_hubs: list[Hub] = []
         self.cordinations: list[tuple[int, int]] = []
         self.types: dict[str, HubTypes] = {
             "blocked": HubTypes.BLOCKED,
@@ -35,11 +42,24 @@ class Parser:
         ]
 
     def name_colorizer(self, name: str, color: str) -> str:
+        """Colorize a name with the specified color.
+
+        For the rainbow option, each character receives a different ANSI
+        color code.
+
+        Args:
+            name: The name to colorize.
+            color: The color to apply.
+
+        Returns:
+            The colorized name.
+        """
         if color == "rainbow":
             gay_form: list[str] = []
             for i in range(len(name)):
                 r, g, b = self.rainbow[i % len(self.rainbow)]
-                gay_form.append(f"\x1b[38;2;{r};{g};{b}m{name[i]}\x1b[0m")
+                gay_form.append(f"\x1b[38;2;{r};{g};{b}m{name[i]}")
+            gay_form.append("\x1b[0m")
             return "".join(gay_form)
         else:
             r, g, b = name_to_rgb(color)
@@ -47,12 +67,25 @@ class Parser:
 
     @staticmethod
     def expurgate_line(line: str) -> str:
-        """One liner method to expurgate a line from comment
-        return: a clean line from comments"""
+        """Remove comments and trailing whitespace from a line.
 
+        Args:
+            line: The line to clean.
+
+        Returns:
+            The line without comments or trailing whitespace.
+        """
         return line.split("#", 1)[0].rstrip()
 
     def metadata_connection(self, metadata_list: list[str]) -> int:
+        """Parse connection metadata and return its capacity.
+
+        Args:
+            metadata_list: The connection metadata to parse.
+
+        Returns:
+            The parsed maximum link capacity.
+        """
         value: int = 0
         for meta in metadata_list:
             if not (match := Regex.mxlc_meta.match(meta)):
@@ -65,6 +98,14 @@ class Parser:
         return value
 
     def metadata_hub(self, metadatas: list[str]) -> tuple[HubTypes, int, str]:
+        """Parse hub metadata.
+
+        Args:
+            metadatas: The hub metadata to parse.
+
+        Returns:
+            A tuple containing the hub type, maximum capacity, and color.
+        """
         zone_type: HubTypes = HubTypes.NORMAL
         color: str = "white"
         max_drone: int = 1
@@ -96,7 +137,11 @@ class Parser:
         return (zone_type, max_drone, color)
 
     def extract_nb_drones(self, line: str) -> None:
+        """Extract the number of drones from a line.
 
+        Args:
+            line: The line currently being parsed.
+        """
         tokkens = line.split()
         if tokkens[0] != "nb_drones:":
             raise ParseError(self.line_i, "NBD_FIRST", tokkens[0])
@@ -112,6 +157,14 @@ class Parser:
         self.nb_drone = val
 
     def extract_hub(self, match: Match[str]) -> Hub:
+        """Extract hub data from a matched line.
+
+        Args:
+            match: The matched regular expression.
+
+        Returns:
+            The extracted hub.
+        """
         hub = Hub()
         hub.name_clr = hub.name = match.group("name")
         if "-" in hub.name:
@@ -128,7 +181,7 @@ class Parser:
             meta_list = match.group("metadata").split()
             hub.type, hub.max_capacity, color = self.metadata_hub(meta_list)
             if hub.type == HubTypes.BLOCKED:
-                self.blocked_hubs.append(hub)
+                self.block_hubs.append(hub)
 
             hub.name_clr = self.name_colorizer(hub.name, color)
 
@@ -138,6 +191,11 @@ class Parser:
         return hub
 
     def extract_connection(self, match: Match[str]) -> None:
+        """Extract connection data from a matched line.
+
+        Args:
+            match: The matched regular expression.
+        """
         zone1 = match.group("zone1")
         zone2: str = match.group("zone2")
         zonepair: set[str] = {zone1, zone2}
@@ -156,7 +214,7 @@ class Parser:
 
         connection = Connection({hub1.name: hub2, hub2.name: hub1})
         if hub1.type == HubTypes.BLOCKED or hub2.type == HubTypes.BLOCKED:
-            self.blocked_connections.append(connection)
+            self.block_connections.append(connection)
 
         if match.group("metadata"):
             meta_list: list[str] = match.group("metadata").split()
@@ -168,8 +226,14 @@ class Parser:
         self.connections.append(zonepair)  # Only parsing life-time
 
     def file_to_graph(self, file_path: str) -> tuple[int, Graph]:
-        """return: tuple containing number of drone and gragh"""
+        """Parse a file and construct its graph.
 
+        Args:
+            file_path: The path to the input file.
+
+        Returns:
+            A tuple containing the number of drones and the graph.
+        """
         with open(file_path, "r") as f:
             for self.line_i, line in enumerate(f, self.line_i):
                 if len(line := self.expurgate_line(line)) == 0:
@@ -206,7 +270,6 @@ class Parser:
                 # [[    CONNECTION  ]]
                 elif match := Regex.connection.match(line):
                     Parser.extract_connection(self, match)
-                    self.graph.cons_count = self.graph.cons_count + 1
                 else:
                     raise ParseError(self.line_i, "INC_FRM")
 
@@ -215,11 +278,8 @@ class Parser:
             if not self.graph.end_hub.name:
                 raise ParseError(self.line_i, "EH_NON")
 
-            blked_hubs = self.blocked_hubs
-            blked_cons = self.blocked_connections
-
-            ok_hubs_count = len(self.graph.hubs) - len(blked_hubs)
-            ok_cons_count = self.graph.cons_count - len(blked_cons)
+            ok_hubs_count = len(self.graph.hubs) - len(self.block_hubs)
+            ok_cons_count = len(self.connections) - len(self.block_connections)
 
             if ok_cons_count >= ok_hubs_count:
                 self.graph.mutli_routes_possible = True

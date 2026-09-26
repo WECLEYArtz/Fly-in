@@ -5,8 +5,18 @@ from errors import AlgoError
 
 
 class Algo:
+    """Base class for finding and generating paths.
+
+    This class provides methods for finding paths through the graph.
+    """
+
     @staticmethod
     def dijktra(graph: Graph) -> None:
+        """Produce the best path in a graph.
+
+        Args:
+            graph: A graph containing all map data.
+        """
         pq: list[tuple[int, int, str]] = [(0, 1, graph.start_hub.name)]
         visited: list[Hub] = []
 
@@ -45,6 +55,16 @@ class Algo:
 
     @staticmethod
     def get_paths(graph: Graph, requested_paths: int) -> list[Path]:
+        """Generate paths by collecting the results of ``dijktra``.
+
+        Args:
+            graph: A graph containing all map data.
+            requested_paths: The number of paths to try to find. This is
+                currently set to 2.
+
+        Returns:
+            A list of paths.
+        """
         paths: list[Path] = []
 
         if not graph.mutli_routes_possible:
@@ -63,7 +83,6 @@ class Algo:
             if not crrnt_adj.algo_prev_hub:
                 raise AlgoError("END_UNRCHED")
 
-            # Extract result path from adjacency_list
             while crrnt_hub != graph.start_hub:
 
                 if not (crrnt_adj.algo_prev_con and crrnt_adj.algo_prev_hub):

@@ -4,20 +4,10 @@ from dataclasses import dataclass
 
 @dataclass
 class Regex:
-    """A pre compiled regex for every keyword, with group attributes
-    bellow is the result of each one individually:
+    """Define the regular expressions used to parse the input format.
 
-
-    hub:
-        - name: the hub name
-        - x: x position (must be verified)
-        - y: y position (must be verified)
-        - metadata: anything between square brakets if existed
-
-    connection:
-        - zone1: string before dash
-        - zone2: string after dash
-        - metadata: anything between square brakets if existed
+    The expressions match hub data, connection data, and their associated
+    metadata.
 
     """
 
