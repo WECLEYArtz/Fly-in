@@ -44,6 +44,9 @@ class Simulation:
         drone_id = 0
         while nb_drones:
             turns, path_index, path = heappop(paths_hq)
+            # TODO: Try to count the capacity of the nodes after start
+            # and pass the count of those nodes before switching to next
+            # path in distribution
 
             for _ in range(int(bottlenecks[path_index])):
                 start_hub_users.append(Drone(drone_id, path_index, 0))

@@ -13,8 +13,6 @@ if __name__ == "__main__":
         nb_drones, graph = Parser().file_to_graph(file_path)
         sim = Simulation(nb_drones, graph)
         sim.path_tiers = Algo.get_paths(graph, 2)
-        if len(sim.path_tiers) < 2:
-            sim.path_tiers.append(sim.path_tiers[0])
         sim.init_drone_paths()
         sim.run_simulation()
     except (ArgError, ParseError, AlgoError) as e:
