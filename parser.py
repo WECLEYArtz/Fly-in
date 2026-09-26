@@ -5,6 +5,7 @@ from graphregex import Regex
 from re import Match
 from webcolors import name_to_rgb, IntegerRGB, names as webnames
 
+
 @dataclass
 class Parser:
     """Parse input data and construct a graph."""

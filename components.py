@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TypeAlias
 
+
 class HubTypes(Enum):
     """Define the available hub, or zone, types."""
 
