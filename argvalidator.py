@@ -3,7 +3,6 @@ import os
 from errors import ArgError
 
 
-# NOTE: read about os, os.path, os.R_OK
 class ArgValidator:
     """Contain the argument validation method."""
 

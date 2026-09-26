@@ -3,13 +3,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TypeAlias
 
-# NOTE: read about "dataclass"
-
-# NOTE: read about why:
-#   "Fields without default values cannot appear after fields
-#   with default values [reportGeneralTypeIssues]"
-
-
 class HubTypes(Enum):
     """Define the available hub, or zone, types."""
 
@@ -79,7 +72,6 @@ class Connection:
 Path: TypeAlias = list[Hub | Connection]
 
 
-# NOTE: read about field(default_factory=list)
 @dataclass
 class Adjacency:
     """Store the data needed to find paths from a hub.
@@ -98,9 +90,6 @@ class Adjacency:
     algo_cost_to_root: int | float = float("inf")
     algo_prev_hub: Hub | None = None
     algo_prev_con: Connection | None = None
-
-
-# NOTE: Read about defaultdict
 
 
 class Graph:
