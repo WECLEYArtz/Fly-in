@@ -64,7 +64,7 @@ class Simulation:
 
         start_hub_users = self.users[self.graph.start_hub]
         nb_drones = self.nb_drones
-        drone_id = 0
+        drone_id = 1
         while nb_drones:
             turns, path_index, path = heappop(paths_hq)
             for _ in range(int(bottlenecks[path_index])):
