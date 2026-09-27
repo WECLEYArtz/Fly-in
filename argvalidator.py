@@ -16,11 +16,11 @@ class ArgValidator:
         Returns:
             The validated file path.
         """
-        file = argv[1].strip()
         if len(argv) < 2:
             raise ArgError("No arguments given")
         if len(argv) > 2:
             raise ArgError("More than one argument recieved")
+        file = argv[1].strip()
         if not len(file):
             raise ArgError("File path can't be a whole of nothing")
         if not os.path.isfile(argv[1]):

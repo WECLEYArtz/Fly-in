@@ -12,7 +12,7 @@ run:
 	uv run python3 main.py $(MAP)
 
 
-deug:
+debug:
 	uv run python3 -m pdb main.py $(MAP)
 
 
