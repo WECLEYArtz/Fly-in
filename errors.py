@@ -71,7 +71,7 @@ class ParseError(Exception):
         self,
         line: int,
         code: str,
-        val: str | int | set[str] | tuple[int, int] | None = None,
+        val: str | int | set[str] | tuple[int, int] | float | None = None,
     ) -> None:
         """Initialize a colorized parsing error message.
 
