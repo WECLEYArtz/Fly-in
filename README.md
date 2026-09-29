@@ -55,7 +55,7 @@ make clean
 make lint
 ```
 
-## How it works
+## Algorithm explanation
 
 1. The parser reads the map file and builds a graph of zones and connections.
 2. Dijkstra's algorithm calculates the best route from the start to the goal.
