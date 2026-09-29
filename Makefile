@@ -22,7 +22,8 @@ clean:
 
 full:
 	@for f in $(shell find maps/ -name '*.txt'); do\
-		make run MAP=$$f; echo "\n";\
+		make run MAP=$$f || exit $$?; \
+		echo "\n";\
 	done
 		
 
