@@ -68,6 +68,8 @@ class Simulation:
         while nb_drones:
             turns, path_index, path = heappop(paths_hq)
             for _ in range(int(bottlenecks[path_index])):
+                if not nb_drones:
+                    break
                 start_hub_users.append(Drone(drone_id, path_index, 0))
                 drone_id += 1
                 nb_drones -= 1
