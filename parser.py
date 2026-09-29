@@ -19,9 +19,6 @@ class Parser:
         self.nb_drone: int
         self.graph: Graph = Graph()
         self.line_i: int = 1
-        self.connections: list[set[str]] = []  # turn into set of Connections?
-        self.block_connections: list[Connection] = []
-        self.block_hubs: list[Hub] = []
         self.cordinations: list[tuple[int, int]] = []
         self.types: dict[str, HubTypes] = {
             "blocked": HubTypes.BLOCKED,
@@ -177,7 +174,7 @@ class Parser:
             meta_list = match.group("metadata").split()
             hub.type, hub.max_capacity, color = self.metadata_hub(meta_list)
             if hub.type == HubTypes.BLOCKED:
-                self.block_hubs.append(hub)
+                self.graph.block_hubs.add(hub)
 
             hub.name_clr = self.name_colorizer(hub.name, color)
 
@@ -194,23 +191,25 @@ class Parser:
         """
         zone1 = match.group("zone1")
         zone2: str = match.group("zone2")
-        zonepair: set[str] = {zone1, zone2}
-
         if zone1 == zone2:
             raise ParseError(self.line_i, "SLF_LOOP", zone1)
         if zone1 not in self.graph.hubs.keys():
             raise ParseError(self.line_i, "CN_UNDF", zone1)
         if zone2 not in self.graph.hubs.keys():
             raise ParseError(self.line_i, "CN_UNDF", zone2)
-        if zonepair in self.connections:
-            raise ParseError(self.line_i, "CN_DUP", zonepair)
+
+        zonepair: tuple[str, str] = (zone1, zone2)
+        if zonepair in self.graph.connections:
+            raise ParseError(
+                self.line_i, "CN_DUP", f"({zonepair[0]},{zonepair[1]})"
+            )
 
         hub1 = self.graph.hubs[zone1]
         hub2 = self.graph.hubs[zone2]
 
         connection = Connection({hub1.name: hub2, hub2.name: hub1})
         if hub1.type == HubTypes.BLOCKED or hub2.type == HubTypes.BLOCKED:
-            self.block_connections.append(connection)
+            self.graph.block_connections.add(connection)
 
         if match.group("metadata"):
             meta_list: list[str] = match.group("metadata").split()
@@ -219,7 +218,7 @@ class Parser:
         self.graph.adjacency_list[hub1.name].connections.append(connection)
         self.graph.adjacency_list[hub2.name].connections.append(connection)
 
-        self.connections.append(zonepair)  # Only parsing life-time
+        self.graph.connections.add(zonepair)
 
     def file_to_graph(self, file_path: str) -> tuple[int, Graph]:
         """Parse a file and construct its graph.
@@ -279,8 +278,11 @@ class Parser:
             if not self.graph.end_hub.name:
                 raise ParseError(self.line_i, "EH_NON")
 
-            ok_hubs_count = len(self.graph.hubs) - len(self.block_hubs)
-            ok_cons_count = len(self.connections) - len(self.block_connections)
+            # Will be deleted section
+            ok_hubs_count = len(self.graph.hubs) - len(self.graph.block_hubs)
+            ok_cons_count = len(self.graph.connections) - len(
+                self.graph.block_connections
+            )
 
             if ok_cons_count >= ok_hubs_count:
                 self.graph.mutli_routes_possible = True

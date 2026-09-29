@@ -107,8 +107,14 @@ class Graph:
     also stores the pair of hubs that it links.
     """
 
-    hubs: dict[str, Hub] = defaultdict(Hub)
-    adjacency_list: dict[str, Adjacency] = defaultdict(Adjacency)
     start_hub: Hub = Hub()
+    hubs: dict[str, Hub] = defaultdict(Hub)
     end_hub: Hub = Hub()
+    block_hubs: set[Hub] = set()
+
+    adjacency_list: dict[str, Adjacency] = defaultdict(Adjacency)
+
+    block_connections: set[Connection] = set()
+    connections: set[tuple[str, str]] = set()
+
     mutli_routes_possible: bool = False
