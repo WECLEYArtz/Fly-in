@@ -100,8 +100,4 @@ class Algo:
 
         if not graph.mutli_routes_possible:
             paths.append(paths[0])
-        elif isinstance(h := paths[0][2], Hub) and h.type == HubTypes.PRIORITY:
-            paths = [paths[0], paths[0]]
-        elif isinstance(h := paths[1][2], Hub) and h.type == HubTypes.PRIORITY:
-            paths = [paths[1], paths[1]]
         return paths

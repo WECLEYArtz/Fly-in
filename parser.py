@@ -127,8 +127,6 @@ class Parser:
                     max_drone = int(m.group("value"))
                 except ValueError as e:
                     raise ParseError(self.line_i, "MXD_INV", e.__str__())
-                if max_drone <= 0:
-                    raise ParseError(self.line_i, "MXD_BLK", max_drone)
             else:
                 raise ParseError(self.line_i, "INC_META_H", meta)
 
@@ -251,6 +249,7 @@ class Parser:
                     if self.graph.start_hub.name:
                         raise ParseError(self.line_i, "SH_DUP")
                     self.graph.start_hub = Parser.extract_hub(self, match)
+                    self.graph.start_hub.max_capacity = float("inf")
 
                 # [[    END_HUB     ]]
                 elif match := Regex.end_hub.match(line):
@@ -263,7 +262,11 @@ class Parser:
 
                 # [[        HUB     ]]
                 elif match := Regex.hub.match(line):
-                    _ = Parser.extract_hub(self, match)
+                    hub = Parser.extract_hub(self, match)
+                    if hub.max_capacity <= 0:
+                        raise ParseError(
+                            self.line_i, "MXD_BLK", hub.max_capacity
+                        )
 
                 # [[    CONNECTION  ]]
                 elif match := Regex.connection.match(line):
