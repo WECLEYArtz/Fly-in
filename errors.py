@@ -326,33 +326,3 @@ class MissingEndHubError(ParseError):
     def __init__(self, line: int) -> None:
         """Initialize the exception."""
         super().__init__(line)
-
-
-__all__ = [
-    "BlockedEndHubError",
-    "BlockedHubMaxDronesError",
-    "BlockedMaxLinkCapacityError",
-    "DuplicateConnectionError",
-    "DuplicateCoordinatesError",
-    "DuplicateEndHubError",
-    "DuplicateHubError",
-    "DuplicateStartHubError",
-    "ExtraNbDronesValuesError",
-    "HubNameContainsDashError",
-    "IncompleteConnectionMetadataError",
-    "IncompleteHubMetadataError",
-    "InvalidColorError",
-    "InvalidHubCoordinatesError",
-    "InvalidHubTypeError",
-    "InvalidMapFormatError",
-    "InvalidMaxDronesError",
-    "InvalidMaxLinkCapacityError",
-    "InvalidNbDronesError",
-    "InvalidNbDronesPrefixError",
-    "MissingEndHubError",
-    "MissingNbDronesValueError",
-    "MissingStartHubError",
-    "NonPositiveNbDronesError",
-    "SelfConnectionError",
-    "UndefinedHubError",
-]

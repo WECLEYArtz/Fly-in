@@ -1,5 +1,32 @@
 from dataclasses import dataclass
-from errors import *
+from errors import (
+    BlockedEndHubError,
+    BlockedHubMaxDronesError,
+    BlockedMaxLinkCapacityError,
+    DuplicateConnectionError,
+    DuplicateCoordinatesError,
+    DuplicateEndHubError,
+    DuplicateHubError,
+    DuplicateStartHubError,
+    ExtraNbDronesValuesError,
+    HubNameContainsDashError,
+    IncompleteConnectionMetadataError,
+    IncompleteHubMetadataError,
+    InvalidColorError,
+    InvalidHubCoordinatesError,
+    InvalidHubTypeError,
+    InvalidMapFormatError,
+    InvalidMaxDronesError,
+    InvalidMaxLinkCapacityError,
+    InvalidNbDronesError,
+    InvalidNbDronesPrefixError,
+    MissingEndHubError,
+    MissingNbDronesValueError,
+    MissingStartHubError,
+    NonPositiveNbDronesError,
+    SelfConnectionError,
+    UndefinedHubError,
+)
 from components import Graph, Hub, HubTypes, Connection
 from graphregex import Regex
 from re import Match
