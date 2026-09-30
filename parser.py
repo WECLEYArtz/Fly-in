@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from errors import ParseError
+from errors import *
 from components import Graph, Hub, HubTypes, Connection
 from graphregex import Regex
 from re import Match
@@ -84,12 +84,14 @@ class Parser:
         value: int = 0
         for meta in metadata_list:
             if not (match := Regex.mxlc_meta.match(meta)):
-                raise ParseError(self.line_i, "INC_META_C", meta)
-            try:
-                if (value := int(match.group("value"))) < 1:
-                    raise ParseError(self.line_i, "MXLC_BLK", value)
-            except ValueError as e:
-                raise ParseError(self.line_i, "MXLC_INV", e.__str__())
+                raise IncompleteConnectionMetadataError(self.line_i, meta)
+
+            value_str = match.group("value")
+            if not value_str.isdigit() or (value := int(value_str)) < 0:
+                raise InvalidMaxLinkCapacityError(self.line_i, value_str)
+            if value == 0:
+                raise BlockedMaxLinkCapacityError(self.line_i, value)
+
         return value
 
     def metadata_hub(self, metadatas: list[str]) -> tuple[HubTypes, int, str]:
@@ -111,21 +113,23 @@ class Parser:
                     not (ztype := m.group("value").lower())
                     in self.types.keys()
                 ):
-                    raise ParseError(self.line_i, "TYP_INV", m.group("value"))
+                    raise InvalidHubTypeError(self.line_i, m.group("value"))
                 zone_type = self.types[ztype]
 
             elif m := Regex.color_meta.match(meta):
                 color = m.group("value")
                 if (color not in webnames()) and (color != "rainbow"):
-                    raise ParseError(self.line_i, "CLR_INV", color)
+                    raise InvalidColorError(self.line_i, color)
 
             elif m := Regex.mxd_meta.match(meta):
-                try:
-                    max_drone = int(m.group("value"))
-                except ValueError as e:
-                    raise ParseError(self.line_i, "MXD_INV", e.__str__())
+                max_drone_str = m.group("value")
+                if (
+                    not max_drone_str.isdigit()
+                    or (max_drone := int(max_drone_str)) < 0
+                ):
+                    raise InvalidMaxDronesError(self.line_i, max_drone_str)
             else:
-                raise ParseError(self.line_i, "INC_META_H", meta)
+                raise IncompleteHubMetadataError(self.line_i, meta)
 
         return (zone_type, max_drone, color)
 
@@ -137,16 +141,16 @@ class Parser:
         """
         tokkens = line.split()
         if tokkens[0] != "nb_drones:":
-            raise ParseError(self.line_i, "NBD_FIRST", tokkens[0])
+            raise InvalidNbDronesPrefixError(self.line_i, tokkens[0])
         if len(tokkens) < 2:
-            raise ParseError(self.line_i, "NBD_EMPTY")
+            raise MissingNbDronesValueError(self.line_i)
         if len(tokkens) > 2:
-            raise ParseError(self.line_i, "NBD_EXTRA")
+            raise ExtraNbDronesValuesError(self.line_i)
         try:
             if (val := int(tokkens[1])) <= 0:
-                raise ParseError(self.line_i, "NBD_USELESS", val)
+                raise NonPositiveNbDronesError(self.line_i, val)
         except ValueError:
-            raise ParseError(self.line_i, "NBD_INV_NUM", tokkens[1])
+            raise InvalidNbDronesError(self.line_i, tokkens[1])
         self.nb_drone = val
 
     def extract_hub(self, match: Match[str]) -> Hub:
@@ -161,14 +165,14 @@ class Parser:
         hub = Hub()
         hub.name_clr = hub.name = match.group("name")
         if "-" in hub.name:
-            raise ParseError(self.line_i, "DASH_NAME", hub.name)
+            raise HubNameContainsDashError(self.line_i, hub.name)
         try:
             hub.cord = (int(match.group("x")), int(match.group("y")))
             if (hub.cord) in self.cordinations:
-                raise ParseError(self.line_i, "CORD_DUP", hub.cord)
+                raise DuplicateCoordinatesError(self.line_i, hub.cord)
             self.cordinations.append(hub.cord)
         except ValueError as e:
-            raise ParseError(self.line_i, "CORD_ERR", e.__str__())
+            raise InvalidHubCoordinatesError(self.line_i, str(e))
 
         if match.group("metadata"):
             meta_list = match.group("metadata").split()
@@ -179,7 +183,7 @@ class Parser:
             hub.name_clr = self.name_colorizer(hub.name, color)
 
         if self.graph.hubs.get(hub.name):
-            raise ParseError(self.line_i, "H_DUP", hub.name)
+            raise DuplicateHubError(self.line_i, hub.name)
         self.graph.hubs[hub.name] = hub
         return hub
 
@@ -192,17 +196,15 @@ class Parser:
         zone1 = match.group("zone1")
         zone2: str = match.group("zone2")
         if zone1 == zone2:
-            raise ParseError(self.line_i, "SLF_LOOP", zone1)
+            raise SelfConnectionError(self.line_i, zone1)
         if zone1 not in self.graph.hubs.keys():
-            raise ParseError(self.line_i, "CN_UNDF", zone1)
+            raise UndefinedHubError(self.line_i, zone1)
         if zone2 not in self.graph.hubs.keys():
-            raise ParseError(self.line_i, "CN_UNDF", zone2)
+            raise UndefinedHubError(self.line_i, zone2)
 
         zonepair: tuple[str, str] = (zone1, zone2)
         if zonepair in self.graph.connections:
-            raise ParseError(
-                self.line_i, "CN_DUP", f"({zonepair[0]},{zonepair[1]})"
-            )
+            raise DuplicateConnectionError(self.line_i, zonepair)
 
         hub1 = self.graph.hubs[zone1]
         hub2 = self.graph.hubs[zone2]
@@ -246,39 +248,38 @@ class Parser:
                 # [[    START_HUB   ]]
                 if match := Regex.start_hub.match(line):
                     if self.graph.start_hub.name:
-                        raise ParseError(self.line_i, "SH_DUP")
+                        raise DuplicateStartHubError(self.line_i)
                     self.graph.start_hub = Parser.extract_hub(self, match)
                     self.graph.start_hub.max_capacity = float("inf")
 
                 # [[    END_HUB     ]]
                 elif match := Regex.end_hub.match(line):
                     if self.graph.end_hub.name:
-                        raise ParseError(self.line_i, "EH_DUP")
+                        raise DuplicateEndHubError(self.line_i)
                     self.graph.end_hub = Parser.extract_hub(self, match)
                     if self.graph.end_hub.type == HubTypes.BLOCKED:
-                        raise ParseError(self.line_i, "EH_BLK")
+                        raise BlockedEndHubError(self.line_i)
                     self.graph.end_hub.max_capacity = float("inf")
 
                 # [[        HUB     ]]
                 elif match := Regex.hub.match(line):
                     hub = Parser.extract_hub(self, match)
-                    if hub.max_capacity <= 0:
-                        raise ParseError(
-                            self.line_i, "MXD_BLK", hub.max_capacity
+                    if hub.max_capacity == 0:
+                        raise BlockedHubMaxDronesError(
+                            self.line_i, hub.max_capacity
                         )
 
                 # [[    CONNECTION  ]]
                 elif match := Regex.connection.match(line):
                     Parser.extract_connection(self, match)
                 else:
-                    raise ParseError(self.line_i, "INC_FRM")
+                    raise InvalidMapFormatError(self.line_i)
 
             if not self.graph.start_hub.name:
-                raise ParseError(self.line_i, "SH_NON")
+                raise MissingStartHubError(self.line_i)
             if not self.graph.end_hub.name:
-                raise ParseError(self.line_i, "EH_NON")
+                raise MissingEndHubError(self.line_i)
 
-            # Will be deleted section
             ok_hubs_count = len(self.graph.hubs) - len(self.graph.block_hubs)
             ok_cons_count = len(self.graph.connections) - len(
                 self.graph.block_connections

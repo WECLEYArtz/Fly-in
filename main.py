@@ -16,7 +16,7 @@ if __name__ == "__main__":
         sim.init_drone_paths()
         sim.run_simulation()
     except (ArgError, ParseError, AlgoError) as e:
-        print(f"\033[31m[{e.__class__.__name__}]", e)
+        print(f"\033[31m[{e.__class__.__name__}]: \033[33m {e} \033[0m ")
         exit(1)
     except KeyboardInterrupt:
         print("Program Terminated!\n")

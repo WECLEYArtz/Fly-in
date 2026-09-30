@@ -1,7 +1,7 @@
 from heapq import heappop, heappush
 
 from components import Adjacency, Graph, Hub, HubTypes, Path
-from errors import AlgoError
+from errors import EmptyAdjacencyError, EndHubUnreachableError
 
 
 class Algo:
@@ -81,12 +81,12 @@ class Algo:
             crrnt_adj: Adjacency = graph.adjacency_list[graph.end_hub.name]
 
             if not crrnt_adj.algo_prev_hub:
-                raise AlgoError("END_UNRCHED")
+                raise EndHubUnreachableError()
 
             while crrnt_hub != graph.start_hub:
 
                 if not (crrnt_adj.algo_prev_con and crrnt_adj.algo_prev_hub):
-                    raise AlgoError("ADJ_EMPT")
+                    raise EmptyAdjacencyError()
                 crrnt_con = crrnt_adj.algo_prev_con
                 crrnt_hub = crrnt_adj.algo_prev_hub
                 crrnt_con.algo_penalty += 1
