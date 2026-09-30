@@ -12,7 +12,7 @@ from errors import (
     HubNameContainsDashError,
     IncompleteConnectionMetadataError,
     IncompleteHubMetadataError,
-    InvalidColorError,
+    InvalidColorSingleWord,
     InvalidHubCoordinatesError,
     InvalidHubTypeError,
     InvalidMapFormatError,
@@ -145,8 +145,10 @@ class Parser:
 
             elif m := Regex.color_meta.match(meta):
                 color = m.group("value")
-                if (color not in webnames()) and (color != "rainbow"):
-                    raise InvalidColorError(self.line_i, color)
+                if not color.isalpha():
+                    raise InvalidColorSingleWord(self.line_i, color)
+                if not (color in webnames() or color == "rainbow"):
+                    color = "white"
 
             elif m := Regex.mxd_meta.match(meta):
                 max_drone_str = m.group("value")

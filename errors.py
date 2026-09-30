@@ -75,10 +75,10 @@ class InvalidHubTypeError(ParseError):
         super().__init__(line, hub_type)
 
 
-class InvalidColorError(ParseError):
-    """Represent an invalid CSS color."""
+class InvalidColorSingleWord(ParseError):
+    """Represent an invalid color single word."""
 
-    message: str = "Invalid css color - got: '{}'"
+    message: str = "Invalid single word color - got: '{}'"
 
     def __init__(self, line: int, color: str) -> None:
         """Initialize the exception with the invalid color."""
