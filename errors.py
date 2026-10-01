@@ -141,6 +141,16 @@ class IncompleteConnectionMetadataError(ParseError):
         super().__init__(line, metadata)
 
 
+class OverridingMetadataError(ParseError):
+    """Represent overriding in metadata."""
+
+    message: str = "Overriding meta data: '{}'\n"
+
+    def __init__(self, line: int, metadata: str) -> None:
+        """Initialize the exception with the malformed metadata."""
+        super().__init__(line, metadata)
+
+
 class IncompleteHubMetadataError(ParseError):
     """Represent malformed hub metadata."""
 

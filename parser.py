@@ -7,6 +7,7 @@ from errors import (
     DuplicateCoordinatesError,
     DuplicateEndHubError,
     DuplicateHubError,
+    OverridingMetadataError,
     DuplicateStartHubError,
     ExtraNbDronesValuesError,
     HubNameContainsDashError,
@@ -108,18 +109,22 @@ class Parser:
         Returns:
             The parsed maximum link capacity.
         """
-        value: int = 0
+        mxlc: int = 1
+        mxlc_init: bool = False
+
         for meta in metadata_list:
             if not (match := Regex.mxlc_meta.match(meta)):
                 raise IncompleteConnectionMetadataError(self.line_i, meta)
 
-            value_str = match.group("value")
-            if not value_str.isdigit() or (value := int(value_str)) < 0:
-                raise InvalidMaxLinkCapacityError(self.line_i, value_str)
-            if value == 0:
-                raise BlockedMaxLinkCapacityError(self.line_i, value)
-
-        return value
+            mxlc_str = match.group("value")
+            if mxlc_init:
+                raise OverridingMetadataError(self.line_i, "max_link_capacity")
+            if not mxlc_str.isdigit() or (mxlc := int(mxlc_str)) < 0:
+                raise InvalidMaxLinkCapacityError(self.line_i, mxlc_str)
+            if mxlc == 0:
+                raise BlockedMaxLinkCapacityError(self.line_i, mxlc)
+            mxlc_init = True
+        return mxlc
 
     def metadata_hub(self, metadatas: list[str]) -> tuple[HubTypes, int, str]:
         """Parse hub metadata.
@@ -131,32 +136,48 @@ class Parser:
             A tuple containing the hub type, maximum capacity, and color.
         """
         zone_type: HubTypes = HubTypes.NORMAL
+        zone_type_init: bool = False
+
         color: str = "white"
+        color_init: bool = False
+
         max_drone: int = 1
+        max_drone_init: bool = False
 
         for meta in metadatas:
             if m := Regex.zone_meta.match(meta):
+                if zone_type_init:
+                    raise OverridingMetadataError(self.line_i, "zone")
                 if (
                     not (ztype := m.group("value").lower())
                     in self.types.keys()
                 ):
                     raise InvalidHubTypeError(self.line_i, m.group("value"))
                 zone_type = self.types[ztype]
+                zone_type_init = True
 
             elif m := Regex.color_meta.match(meta):
                 color = m.group("value")
+                if color_init:
+                    raise OverridingMetadataError(self.line_i, "color")
                 if not color.isalpha():
                     raise InvalidColorSingleWord(self.line_i, color)
                 if not (color in webnames() or color == "rainbow"):
                     color = "white"
+                color_init = True
 
             elif m := Regex.mxd_meta.match(meta):
                 max_drone_str = m.group("value")
+                if max_drone_init:
+                    raise OverridingMetadataError(
+                        self.line_i, "max_drone_capacity"
+                    )
                 if (
                     not max_drone_str.isdigit()
                     or (max_drone := int(max_drone_str)) < 0
                 ):
                     raise InvalidMaxDronesError(self.line_i, max_drone_str)
+                max_drone_init = True
             else:
                 raise IncompleteHubMetadataError(self.line_i, meta)
 
