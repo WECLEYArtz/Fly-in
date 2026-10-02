@@ -16,8 +16,10 @@ if __name__ == "__main__":
         sim.init_drone_paths()
         sim.run_simulation()
     except (ArgError, ParseError, AlgoError) as e:
-        print(f"\033[31m[{e.__class__.__name__}]: \033[33m {e} \033[0m ")
-        exit(1)
+        sys.exit(f"\033[31m[{e.__class__.__name__}]: \033[33m {e} \033[0m ")
+    except UnicodeDecodeError:
+        sys.exit("None UTF-8 file was given\n")
     except KeyboardInterrupt:
-        print("Program Terminated!\n")
-        exit(1)
+        sys.exit("Program Terminated!\n")
+    except Exception as e:
+        sys.exit("Unexpected error: " + str(e))
