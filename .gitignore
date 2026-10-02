@@ -3,3 +3,5 @@ __pycache__
 map.txt
 plan.md
 *.lock
+*.pdf
+*.html

@@ -115,6 +115,6 @@ class Graph:
     adjacency_list: dict[str, Adjacency] = defaultdict(Adjacency)
 
     block_connections: set[Connection] = set()
-    connections: set[tuple[str, str]] = set()
+    connections: list[set[str]] = []
 
     mutli_routes_possible: bool = False

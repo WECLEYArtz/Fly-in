@@ -297,9 +297,9 @@ class DuplicateConnectionError(ParseError):
 
     message: str = "Duplicated connection '{}'"
 
-    def __init__(self, line: int, connection: tuple[str, str]) -> None:
+    def __init__(self, line: int, connection: set[str]) -> None:
         """Initialize the exception with the duplicate connection."""
-        super().__init__(line, f"({connection[0]},{connection[1]})")
+        super().__init__(line, f"({connection})")
 
 
 class InvalidMapFormatError(ParseError):

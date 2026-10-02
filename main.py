@@ -21,5 +21,5 @@ if __name__ == "__main__":
         sys.exit("None UTF-8 file was given\n")
     except KeyboardInterrupt:
         sys.exit("Program Terminated!\n")
-    except Exception as e:
-        sys.exit("Unexpected error: " + str(e))
+    # except Exception as e:
+    #     sys.exit("Unexpected error: " + str(e))

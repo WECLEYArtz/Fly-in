@@ -243,7 +243,7 @@ class Parser:
         Args:
             match: The matched regular expression.
         """
-        zone1 = match.group("zone1")
+        zone1: str = match.group("zone1")
         zone2: str = match.group("zone2")
         if zone1 == zone2:
             raise SelfConnectionError(self.line_i, zone1)
@@ -252,7 +252,7 @@ class Parser:
         if zone2 not in self.graph.hubs.keys():
             raise UndefinedHubError(self.line_i, zone2)
 
-        zonepair: tuple[str, str] = (zone1, zone2)
+        zonepair: set[str] = {zone1, zone2}
         if zonepair in self.graph.connections:
             raise DuplicateConnectionError(self.line_i, zonepair)
 
@@ -270,7 +270,7 @@ class Parser:
         self.graph.adjacency_list[hub1.name].connections.append(connection)
         self.graph.adjacency_list[hub2.name].connections.append(connection)
 
-        self.graph.connections.add(zonepair)
+        self.graph.connections.append(zonepair)
 
     def file_to_graph(self, file_path: str) -> tuple[int, Graph]:
         """Parse a file and construct its graph.

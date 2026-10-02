@@ -11,7 +11,7 @@ class Algo:
     """
 
     @staticmethod
-    def dijktra(graph: Graph) -> None:
+    def dijkstra(graph: Graph) -> None:
         """Produce the best path in a graph.
 
         Args:
@@ -74,7 +74,7 @@ class Algo:
             for adj in graph.adjacency_list.values():
                 adj.algo_cost_to_root = float("inf")
 
-            Algo.dijktra(graph)
+            Algo.dijkstra(graph)
 
             crrnt_hub = graph.end_hub
             path: Path = [graph.end_hub]

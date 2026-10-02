@@ -96,10 +96,10 @@ make run MAP=maps/easy/01_linear_path.txt
 Example output:
 
 ```text
-D0-waypoint1
-D0-waypoint2 D1-waypoint1
-D0-goal D1-waypoint2
-D1-goal
+D1-waypoint1
+D1-waypoint2 D2-waypoint1
+D1-goal D2-waypoint2
+D2-goal
 ```
 
 Each item has the form `D<id>-<zone>`, meaning that the specified drone
