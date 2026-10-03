@@ -24,7 +24,11 @@ class ArgValidator:
         if not len(file):
             raise ArgError("File path can't be a whole of nothing")
         if not os.path.isfile(argv[1]):
-            raise ArgError(f"File '{argv[1]}' doesn't exist")
+            raise ArgError(
+                f"'{argv[1]}' is a dictionary, expecting a file"
+                if os.path.isdir(argv[1])
+                else f"File '{argv[1]}' doesn't exist"
+            )
         if not os.access(file, os.R_OK):
             raise ArgError(f"Lacking read permission for file '{argv[1]}'")
         return argv[1]
