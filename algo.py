@@ -17,13 +17,11 @@ class Algo:
         Args:
             graph: A graph containing all map data.
         """
-        pq: list[tuple[int, int, str]] = [(0, 1, graph.start_hub.name)]
+        pq: list[tuple[int, Hub]] = [(0, graph.start_hub)]
         visited: list[Hub] = []
 
         while pq:
-            turns, _, current_name = heappop(pq)
-            current = Graph.hubs[current_name]
-
+            turns, current = heappop(pq)
             if current.type == HubTypes.BLOCKED:
                 continue
 
@@ -31,12 +29,10 @@ class Algo:
                 break
 
             for connection in graph.adjacency_list[current.name].connections:
-
-                neighbor: Hub = connection.xpairs[current.name]
-                adjacency: Adjacency = graph.adjacency_list[neighbor.name]
-
-                if neighbor in visited:
+                if (neighbor := connection.xpairs[current.name]) in visited:
                     continue
+
+                adjacency: Adjacency = graph.adjacency_list[neighbor.name]
 
                 cost = (
                     turns
@@ -50,7 +46,7 @@ class Algo:
                     adjacency.algo_prev_hub = current
                     adjacency.algo_prev_con = connection
 
-                heappush(pq, (cost, neighbor.type.value, neighbor.name))
+                heappush(pq, (cost, neighbor))
                 visited.append(current)
 
     @staticmethod

@@ -52,6 +52,10 @@ class Hub:
         """Return the colored hub name."""
         return self.name_clr
 
+    def __lt__(self, other: "Hub") -> bool:
+        """Return the comparation of current and other hub."""
+        return self.type.value < other.type.value
+
 
 class Connection:
     """Represent a connection between two hubs."""
